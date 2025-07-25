@@ -1,0 +1,34 @@
+\newglossaryentry{authentication token}{
+	name={authentication token},
+    description={unique identifier, an element of the finite field $\mathbb{F}_q$, used for capability-based access to write-once memory cell}
+}
+
+\newglossaryentry{locking condition}{
+    name={locking condition},
+    description={program defining access rights for an \gls{immutable memory} cell, which must be satisfied with a witness in the spending operation input}
+}
+
+\newglossaryentry{composed value}{
+    name={composed value},
+    description={a variable length sequence of field elements in $\mathbb{F}_q$, from zero to four}
+}
+
+\newglossaryentry{read-once memory}{
+    name={read-once memory},
+    description={capability-based memory, an element of which (``cell'') can be read only once, by providing an \gls{authentication token} and fulfilling optional \gls{locking condition}. Once accessed, the memory cell is destroyed}
+}
+
+\newglossaryentry{write-once memory}{
+    name={write-once memory},
+    description={memory, an element of which (``cell'') can be created only once, cannot be changed or destroyed, and can be accessed (read) multiple times by any party}
+}
+
+\newglossaryentry{destructible memory}{
+    name={destructible memory},
+    description={see \gls{read-once memory}}
+}
+
+\newglossaryentry{immutable memory}{
+    name={immutable memory},
+    description={see \gls{write-once memory}}
+}
