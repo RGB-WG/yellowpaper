@@ -335,9 +335,9 @@ The architecture uses a virtual machine zk-AluVM, immutable memory cells of two 
 
 AluVM \cite{AluVM} is a modular framework for developing RISC instruction set architectures and registry-based
 virtual machines, based on category theory. RGB uses zk-AluVM version of it, 
-which comes with GFA256 instruction set architecture, supporting arithmetic operations with
-finite field elements. It is extended by USONIC and RGB-specific instructions
-for accessing operation data and memory.
+which comes with \textbf{GFA256} instruction set architecture, supporting arithmetic operations with
+finite field elements (see Table \ref{tab:gfa256}). It is extended by \textbf{USONIC} instructions
+for accessing operation data and memory (see Table \ref{tab:usonic}).
 The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
 
 \end{multicols}
@@ -424,21 +424,32 @@ which is an ordered sequence of zero to four finite field elements:
 an \gls{authentication token} $\alpha$, and an optional \gls{locking condition} $\mathcal{L}$:
 
 \begin{gather}
-\mathbb{D} \triangleq \mathbb{V} \times \mathbb{F}_q \times \{ \varnothing, \ell \} \\
+\mathbb{D} \triangleq \mathbb{V} \times \mathbb{F}_q \times \{ \varnothing, \langle \mathbb{V}, \{ \varnothing, \mathbb{E} \} \rangle \} \\
 \forall \mathsf{d}_i \in \mathcal{D}(\mathsf{a}) : \mathsf{d}_i \triangleq \langle \sigma, \alpha, \mathcal{L} \rangle \in \mathbb{D}
 \end{gather}
 
-A locking condition, when present as $\ell$, is an entry point into the AluVM program (see next section),
+A locking condition, when present as $\langle \xi, \ell \rangle \in \mathcal{L} \setminus \{ \varnothing \}$,
+consists of an auxiliary data $\xi$ and an optional verification script entry point $\ell$.
+
+The auxiliary data may be used by the codex verifier script or the custom locking script $\ell$
+to check the satisfaction of the lock conditions with an input-specific witness,
+which will come from the spending input.
+For example, this may be the value of a public key, and the witness will have a signature,
+while the script will validate the signature for that key.
+
+The locking script, when present as $\varepsilon \in \ell \setminus \{ \varnothing \}$,
+is an entry point into the AluVM program (see next section),
 which should succeed on execution in order for the cell to be read and destroyed.
-If a locking condition is not present, the memory cell is destroyed on the first read operation
+
+The destructible memory cell is destroyed on the first read operation
 and cannot be accessed or referenced anymore.
 
-\Gls{immutable memory} cells consist of a single \gls{composed value} $\sigma$,
+\Gls{immutable memory} cells consist of a single \gls{composed value} $\varsigma$,
 and an optional binary raw data $\mathcal{R}$, up to $2^{16}$ bytes:
 
 \begin{gather}
 \mathbb{I} \triangleq \mathbb{V} \times \{ \varnothing, \mathbb{N}_8^{[0; 2^{16})} \}_\preceq \\
-\forall \mathsf{e}_i \in \mathcal{I}(\mathsf{a}) : \mathsf{e}_i \triangleq \langle \sigma, \mathcal{R} \rangle \in \mathbb{I}
+\forall \mathsf{e}_i \in \mathcal{I}(\mathsf{a}) : \mathsf{e}_i \triangleq \langle \varsigma, \mathcal{R} \rangle \in \mathbb{I}
 \end{gather}
 
 The raw data do not participate in the validation process and thus are never arithmetized.
@@ -513,7 +524,7 @@ are beyond the scope of this document and are a subject of future work.
 
 To run a program, AluVM must be provided with an unordered set of known \emph{libraries},
 used by the program, and an \emph{entry point} 
-$\mathsf{e} \triangleq \langle \mathsf{Id_{lib}} \in \mathbb{N}^{32}_8, p \in \mathbb{N}_{16} \rangle$,
+$\mathsf{h} \triangleq \langle \mathsf{Id_{lib}} \in \mathbb{N}^{32}_8, p \in \mathbb{N}_{16} \rangle$,
 consisting of a library id $\mathsf{Id_{lib}}$ and an offset $p$ in the library code segment.
 The number of known libraries is unbounded; therefore, the complexity limit mechanism
 is the only way to bound the computation of a program.
@@ -549,6 +560,22 @@ it is represented by a tuple
 \noindent
 which components are defined in Table \ref{tab:contract}.
 
+The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
+$\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
+
+The contract metadata $\mathsf{m}$ define contract-specific parameters, which include
+(in the order of their position in the tuple):
+
+\begin{enumerate}
+\item boolean indicating whether the contract is a test contract,
+\item a specific consensus layer 1 used by the contract,
+\item ISO 8601 timestamp of the moment the contract is issued,
+\item a set of feature flags (must be zeros for RGB-I.0),
+\item optional name of the contract, which must start with a capital letter or a \texttt{\_} symbol,
+  and may contain up to 99 ASCII letters, numbers, or \texttt{\_} symbol,
+\item an identity string of the contract issuer, made of ASCII printable characters.
+\end{enumerate}
+
 \end{multicols}
 \begin{table}[h]
 \centering
@@ -566,24 +593,8 @@ $\mathsf{c}_0$ & See Section \ref{Operation} & n/a & Genesis operation \\
 \end{table}
 \begin{multicols}{2}
 
-The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
-$\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
-
-The contract metadata $\mathsf{m}$ define contract-specific parameters, which include
-(in the order of their position in the tuple):
-
-\begin{enumerate}
-\item boolean indicating whether the contract is a test contract,
-\item a specific consensus layer 1 used by the contract,
-\item ISO 8601 timestamp of the moment the contract is issued,
-\item a set of feature flags (must be zeros for RGB-I.0),
-\item optional name of the contract, which must start with a capital letter or a \texttt{\_} symbol,
-  and may contain up to 99 ASCII letters, numbers, or \texttt{\_} symbol,
-\item an identity string of the contract issuer, made of ASCII printable characters.
-\end{enumerate}
 
 \subsection{Codex}\label{Codex}
-
 
 The codex is a set of parameters and rules that define the contract business logic
 but do not define any form of a state. The \emph{contract business logic} does not mean
@@ -690,14 +701,13 @@ The state of the memory is defined as a result of executing the
 $\mathsf{evaluate}: \mathcal{O} \rightarrow \langle \mathcal{D}, \mathcal{I} \rangle$ procedure,
 as described in Section \ref{Evaluate}.
 
+\columnbreak
 \subsection{Contract Operation}\label{Operation}
 
 Contract operation is a tuple
 \begin{equation}
 o_i \triangleq \langle \mathsf{c}_i, S_i, u_i \rangle
 \end{equation}
-
-\columnbreak
 \noindent
 consisting of:
 \noindent
@@ -709,14 +719,6 @@ consisting of:
   which values must belong to a set of either unit value, or a specific witness $w_i$:
   $u_i \in \{ \varnothing, w_i \}$.
 \end{itemize}
-
-A client-side part of the operation is represented by a tuple
-\noindent
-\begin{equation}
-\mathsf{c}_i \triangleq \langle v, \mathsf{C_Id}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
-\end{equation}
-\noindent
-which meaning is given in the table \ref{tab:op}.
 
 \end{multicols}
 \begin{table}[h]
@@ -730,7 +732,7 @@ $v$ & $\mathbb{N}_8$ & RGB consensus version (must be set to $0$) \\
 $\mathsf{C_Id}$ & $\mathbb{N}_8^{32}$ & Contract id \\
 $\phi$ & $\mathbb{N}_{16}$ & Call id \\
 $\lambda$ & $\mathbb{N}_{16}$ & Nonce \\
-$\Upsilon$ & $\mathbb{V}$ & Witness data \\
+$\Upsilon$ & $\mathbb{V}$ & Operation-level witness data (unrelated to single-use seal witness!) \\
 $\mathcal{A}$ & $\{\mathbb{A} \times \mathbb{V}\}_\preceq^{[0, 2^{16})}$ & Destructible memory refs (input) \\
 $\mathcal{B}$ & $\{\mathbb{A}\}_\preceq^{[0, 2^{16})}$ & Immutable memory refs (input) \\
 $\mathcal{Y}$ & $\{\mathbb{D}\}_\preceq^{[0, 2^{16})}$ & Destructible memory declaration (output) \\
@@ -739,6 +741,14 @@ $\mathcal{Z}$ & $\{\mathbb{I}\}_\preceq^{[0, 2^{16})}$ & Immutable memory declar
 \end{tabular}
 \end{table}
 \begin{multicols}{2}
+
+A client-side part of the operation is represented by a tuple
+\noindent
+\begin{equation}
+\mathsf{c}_i \triangleq \langle v, \mathsf{C_Id}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
+\end{equation}
+\noindent
+which meaning is given in the table \ref{tab:op}.
 
 The contract \emph{genesis} is a special type of operation, which contains no input:
 \noindent
@@ -921,7 +931,99 @@ Olga Ukolova had provided a lot of feedback and comments during the protocol des
 
 \appendix
 \section{RGB Instruction Set Architecture}\label{AnnexA}
-% Appendix I content here
+
+\begin{table}[h]
+\centering
+\caption{AluVM Control Flow Instruction Set Architecture}\label{tab:aluvm}
+\begin{tabular}{l p{1cm} l p{1cm} p{1cm} p{1.5cm} p{1cm} p{1.5cm} p{5cm}}
+\toprule
+Op. code & Instr. byte & Args & Src. & Dst. & \textbf{CK} change & \textbf{CY} change & \textbf{CS/CP} (call stack) & Description \\
+\midrule
+NOP	    &0	&-  	&-      		&-                              &-	        &	  &		&Not an operation \\ \midrule
+NOCO	&1	&-  	&\textbf{CO}	&$\mathbf{CO}$	                &-	      	&	  &		&Inverts \textbf{CO} \\ \midrule
+CHCO	&2	&-  	&\textbf{CO}	&-                              &-	      	&	  &	    &Terminate if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
+CHCK	&3	&-  	&\textbf{CK}	&-                              &-	      	&	  &	    &Terminate if \textbf{CK} is in failed state \\ \midrule
+FAIL	&4	&-  	&-         		&-                              &\textsf{failed}		&	  &	    &Set \textbf{CK} to failed state, terminates if \textbf{CH} is set \\ \midrule
+RSET	&5	&-  	&\textbf{CK}	&$\mathbf{CO}, \mathbf{CK}$	    &-	      	&	  &		&Resets \textbf{CK}, sets \textbf{CO} to a previous \textbf{CK} value \\ \midrule
+JMP	    &6	&$p$	&-		        &-                              &may fail	&inc  &		&Jump to location (unconditionally) \\ \midrule
+JINE	&7	&$p$	&\textbf{CO}	&-                              &may fail	&inc  &		&Jump to location if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
+JIFAIL	&8	&$p$	&\textbf{CK}	&-                              &may fail	&inc  &		&Jump to location if \textbf{CK} is in failed state \\ \midrule
+SH      &9	&$r$	&-              &-                              &may fail	&inc  &		&Relative jump \\ \midrule
+SHNE	&10	&$r$	&\textbf{CO}	&-                              &may fail	&inc  &		&Relative jump if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
+SHFAIL	&11	&$r$	&\textbf{CK}	&-                              &may fail	&inc  &		&Relative jump if \textbf{CK} is in failed state \\ \midrule
+EXEC	&12	&$h$	&-		        &-                              &may fail	&inc  & 	&Jump outside library \\ \midrule
+FN  	&13	&$p$	&-		        &-                              &may fail	&     &inc  &Call inside library \\ \midrule
+CALL	&14	&$h$	&-		        &-                              &may fail	&     &inc	&Call outside library \\ \midrule
+RET 	&15	&-  	&-		        &-                              &-	      	&     &dec  &Return or finish program \\ \midrule
+STOP	&16	&-  	&-		        &-                              &-	      	&     &     &Unconditionally stop program \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+\begin{table}[h]
+\centering
+\caption{\textbf{GFA256} Instruction Set Architecture Extension for AluVM}\label{tab:gfa256}
+\begin{tabular}{l p{1cm} p{1cm} l l p{1.5cm} p{8cm}}
+\toprule
+Op. code & Instr. byte & Ext. half-byte & Src. & Dst. & \textbf{CK} change & Description \\
+\midrule
+TEST	&	64	&	0	&	\textbf{E}	&	\textbf{CO}	&		&	Tests if register contains a value and set \textbf{CO} accordingly.	\\ \midrule
+CLR	&	64	&	1	&		&	\textbf{E}	&		&	Clear destination register value.	\\ \midrule
+PUTD	&	64	&	2	&	$f \in \mathbb{F}_q$	&	\textbf{E}	&		&	Put a value to the destination register	\\ \midrule
+PUTZ	&	64	&	3	&		&	\textbf{E}	&		&	Put zero value to the destination register	\\ \midrule
+PUTV	&	64	&	4	&	\textsf{const}	&	\textbf{E}	&		&	Put predefined constant value to the destination register. The pre-defined constants are $1$, $2^{64}$, $2^{128}$ and $q$ (the order of the finite field taken from \textbf{FQ})	\\ \midrule
+FITS	&	64	&	5	&	\textbf{E}, \textsf{bits}	&	\textbf{CO}	&	may fail	&	Test whether a value in a source register fits in the provided number of bits. Sets \textbf{CO} register to the results of the test. The \textsf{bits} value is an natural number representing the maximal number of lowest bits which may be set. If the source register does not contains a value, sets both \textbf{CO} and  \textbf{CK} to failed state, otherwise leaves the value in  \textbf{CK} unchanged.	\\ \midrule
+MOV	&	65	&	6	&	\textbf{E}	&	\textbf{E}, \textbf{CO}	&		&	Moves (copies) value from the source to the destination register, overwriting the previous value in the destination. If the source has no value, the destination value is also cleared. Operation leaves the value in the source register unaffected, and does not change the values in \textbf{CO} and \textbf{CK} registers.	\\ \midrule
+EQ	&	66	&	7	&	\textbf{E}, \textbf{E}	&	\textbf{CO}	&	may fail	&	Sets \textbf{CO} to the result of register equivalence test. If both registers do not contain a value, sets \textbf{CK} to failed state.	\\ \midrule
+NEG	&	67	&	-	&	\textbf{E}	&	\textbf{E}	&	may fail	&	Take the value from the source register, negate using finite-field modulo arithmetics, and put the result into the destination register. If the source register has no value \textbf{CK} is set to failed state.	\\ \midrule
+ADD	&	68	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&	Add values of two registers using finite-field arithmetics and put the result into the first of the register. Do not detect overflows. If either of the source register does not contain a value, sets \textbf{CK} fo failed state.	\\ \midrule
+MUL	&	69	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&	Multiply values of two registers using finite-field arithmetics and put the result into the first of the register. Do not detect overflows. If either of the source register does not contain a value, sets \textbf{CK} fo failed state.	\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The \textbf{GFA256} ISA defines \textbf{FQ} constant (read-only) register,
+which contains the order $q$ of the used finite field $\mathbb{F}_q$; and 
+16 general registers to store finite field element values,
+from \textbf{E1} to \textbf{E8}, and from \textbf{EA} to \textbf{EH}.
+All registers are equivalent in their functionality and are represented as \textbf{E} in the table above.
+
+\newpage
+
+\begin{table}[h]
+\centering
+\caption{\textbf{USONIC} Instruction Set Architecture Extension for AluVM}\label{tab:usonic}
+\begin{tabular}{l p{1cm} l l p{7cm}}
+\toprule
+Op. code & Instr. byte & Src. & Dst. & Description \\
+\midrule
+CKNXIRO	&128	&$\mathcal{A}, \mathbf{UI1}$	&\textbf{CO}	&Sets \textbf{CO} to the result of check $\mathbf{UI1} < \| \mathcal{A} \|$ \\ \midrule
+CKNXIAO	&129	&$\mathcal{B}, \mathbf{UI2}$	&\textbf{CO}	&Sets \textbf{CO} to the result of check $\mathbf{UI2} < \| \mathcal{B} \|$ \\ \midrule
+CKNXORO	&130	&$\mathcal{Y}, \mathbf{UI3}$	&\textbf{CO}	&Sets \textbf{CO} to the result of check $\mathbf{UI3} < \| \mathcal{Y} \|$ \\ \midrule
+CKNXOAO	&131	&$\mathcal{Z}, \mathbf{UI4}$	&\textbf{CO}	&Sets \textbf{CO} to the result of check $\mathbf{UI4} < \| \mathcal{Z} \|$ \\ \midrule
+LDW	    &132	&$\Upsilon$	                    &              	&Load operation witness data (not the same as single-use seal witness!) to \textbf{EA-ED} registers. \\ \midrule
+LDIW	&133	&$\mathsf{d}_\varpi: \mathsf{addr}(\mathsf{d}_\sigma) = a_\mathbf{UI1}$	&	&Load a destructible input-specific witness for the current input number (determined by the value in \textbf{UI1}) to \textbf{EA-ED} registers. 
+The operation is idempotent and does not update the value of \textbf{UI1} register. It also sets \textbf{CO} to indicate whether the input matching \textbf{UI1} value is present. \\ \midrule
+LDIL	&134	&$\mathsf{d}_\varpi: \mathsf{addr}(\mathsf{d}_\xi) = a_\mathbf{UI1}$	&	&Load a destructible input-specific auxiliary locking conditions for the current input number (determined by the value to the \textbf{UI1}) to \textbf{EA-ED} registers. 
+The operation is idempotent and does not update the value of \textbf{UI1} register. It also sets \textbf{CO} to indicate whether the input matching \textbf{UI1} value is present. \\ \midrule
+LDIT	&135	&$\alpha_\mathbf{UI1}$	        &\textbf{CO}	&Load a destructible input authorization token $\alpha$ for the current input number (determined by the value in \textbf{UI1}) to \textbf{EA}. The operation also sets \textbf{EB} to either $0$ (if a custom lock script is not present) or $1$, if it is present.
+The operation is idempotent and does not update the value of \textbf{UI1} register. It also sets \textbf{CO} to indicate whether the input matching \textbf{UI1} value is present. \\ \midrule
+LDIRO	&136	&$\mathsf{d}_\sigma: \mathsf{addr}(\mathsf{d}_\sigma) = \mathsf{a}_\mathbf{UI1}$	&\textbf{EA-ED, CO}	&Load the destructible memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDIAO	&137	&$\mathsf{e}_\varsigma: \mathsf{addr}(\mathsf{e}_\varsigma) = \mathsf{b}_\mathbf{UI1}$	&\textbf{EA-ED, CO}	&Load the immutable memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDORO	&138	&$\sigma(\mathsf{y}_\mathbf{UI2})$	&\textbf{EA-ED, CO}	&Load next destructible operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDOAO	&139	&$\varsigma(\mathsf{z}_\mathbf{UI2})$	&\textbf{EA-ED, CO}	&Load next immutable operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+RSTIRO	&140	&-	&\textbf{UI1}	&Resets iterator over the input descructible memory cells by setting \textbf{UI1} to zero. \\ \midrule
+RSTIAO	&141	&-	&\textbf{UI2}	&Resets iterator over the input immutable memory cells by setting \textbf{UI2} to zero. \\ \midrule
+RSTORO	&142	&-	&\textbf{UI3}	&Resets iterator over the output descructible memory cells by setting \textbf{UI3} to zero. \\ \midrule
+RSTOAO	&143	&-	&\textbf{UI4}	&Resets iterator over the output immutable memory cells by setting \textbf{UI4} to zero. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All \textbf{USONIC} instructions do not take arguments. None of them changes the value in \textbf{CK}.
+
 
 \newpage
 \section{Commitments Specification}\label{AnnexB}
