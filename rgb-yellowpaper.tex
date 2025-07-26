@@ -109,6 +109,10 @@
   }
 \makeatother
 
+\newenvironment{coltable}
+  {\par\bigskip\noindent\minipage{\columnwidth}\centering}
+  {\endminipage\par\bigskip}
+
 \makeglossaries
 \loadglsentries{glossaries}
 \renewcommand*{\glstextformat}[1]{\textit{#1}}
@@ -154,29 +158,34 @@ which makes it distinct from traditional blockchain-based smart contract systems
 
 The idea of smart contracts, originating from Nick Szabo \cite{Szabo},
 has been an inspiration for almost a generation.
-However, all existing attempts, such as blockchains, different types of sidechains,
-rollups, state channels, and others, fail to achieve all the required properties
-of the following trilemma:
+However, all existing attempts for building a permissionless smart contracts,
+such as based on blockchains, different types of sidechains,
+rollups, state channels, and others, fail to solve the trilemma:
 \begin{itemize}
-    \item be scalable independently of the number of participants;
-    \item be universal (``Turing-equivalent'');
+    \item be scalable as $O(1)$, or at least as $O(\log n)$;
+    \item be universal (``Turing-complete'');
     \item be decentralized, permissionless and trustless.
 \end{itemize}
 
-Client-side validation is the paradigm proposed by Peter Todd in 2016 \cite{CSV}.
+The main reason was the fact that all the mentioned approaches require
+all participants to verify the state and state transition function of all world smart contracts,
+which, obviously, cannot scale.
+
+This problem can be addressed with
+\emph{client-side validation}: the paradigm proposed by Peter Todd in 2016 \cite{CSV}.
 Its core idea is the fact that the state validation in a distributed system
 does not need to be performed globally by all parties to the decentralized protocol;
 instead, only parties involved in a specific state transition need to perform the validation.
 With this approach, the state transition does not need to be published globally;
-instead, it is sufficient to make sure that a cryptographic commitment for it
+it is sufficient to make sure that a cryptographic commitment for it
 can be verified as final and singular by all parties participating in the state transition.
 This is achievable with a new class of cryptographic protocols,
 proposed by Peter Todd, named single-use seals \cite{SUS1, SUS2}, which allows
 to prove both finality and singularity of the transition in a noninteractive way.
 
-Based on ideas of Peter Todd, Giacomo Zucco has proposed an early idea of RGB,
+Based on ideas of Peter Todd, Giacomo Zucco has proposed an early idea of RGB as
 a client-side validated asset system, leveraging Bitcoin transactions
-(both on-chain and off-chain, like in Lightning network) as a single-use-seal protocol \cite{Zucco}.
+(both on-chain and off-chain, like in Lightning network) as a \emph{single-use seal} protocol \cite{Zucco}.
 However, it was lacking programmability, support for non-trivial state,
 ability for a Bitcoin UTXO to be used by multiple assets,
 and was not zk-friendly.
@@ -187,7 +196,7 @@ RGB employs a novel SONIC (State machine with Ownership Notation Involving Capab
 leveraging the zk-AluVM virtual machine and zero-knowledge STARK proofs
 for scalability, security, and formal verification.
 The protocol operates as partially replicated state machines (PRiSM);
-it uses polynomial computation, and capability-based access control,
+it uses polynomial computation and capability-based access control,
 which makes it distinct from traditional smart contract systems.
 The protocol operates on top of a UTXO-based blockchain (so-called \emph{layer 1})
 as a finality gadget; however, it is not used for ordering of transactions or storing a state,
@@ -198,7 +207,7 @@ since it does not fulfill any of the properties defining a distributing consensu
 \begin{itemize}
     \item ordering of transactions (RGB transactions are not published or broadcast via blockchain);
     \item state machine replication (no state is replicated via layer 1);
-    \item atomic broadcasts (since the ordering of layer 1 transactions doesn't matter for RGB).
+    \item atomic broadcasts (since the ordering of layer 1 transactions does not matter for RGB).
 \end{itemize}
 
 Instead, RGB runs its own \emph{client-side validated consensus}, where blockchain consensus
@@ -245,7 +254,7 @@ such as in $\mathsf{c}_i \triangleq \langle \mathsf{C_{Id}}, \ \ldots \rangle$.
 
 Variable-size sets of the same-typed objects (ordered or unordered) are denoted with
 Latin uppercase calligraphic letters (like $\mathcal{S}$).
-For representing set elements, we use braces $\{\ldots\}$ and set builder notation \cite{setbuilder}.
+For representing set elements, we use braces $\{\ldots\}$ and the set builder notation \cite{setbuilder}.
 The type of variable-sized sets is given as an element type with a power component
 specifying the range of cardinality allowed for the set.
 For example, $\mathbb{N}_8^{[0, 32)}$ indicates a sequence of bytes with cardinality (length)
@@ -311,7 +320,7 @@ You can find more about RGB version numbering in the RGB-6 standard \cite{RGB6}.
 Most modern computers use modified von Neumann and Harvard architecture, derived from it.
 While offering a convenient user experience, these architectures were not designed neither for
 arithmetization, required in creation of zk-STARK proofs, nor for distributed system requirements,
-nor for security and formal verification. For example, random-memory access has become the source
+nor for security and formal verification. For example, random-memory access has been the source
 of most hacks and security bridges for more than 50 years.
 So, while it is possible to adopt von Neumann-style architecture for zk-STARK provers
 (one may refer to Cairo \cite{Cairo}), this results in large proof size, high computational resource demand
@@ -457,16 +466,16 @@ with the following modifications:
 
 The machine executes a single instruction at each step.
 The complete list of all instructions and their encodings,
-as well as information about registers (i.e. Instruction Set Architecture),
-is given in the Annex \ref{AnnexA}.
+as well as information about registers (i.e., Instruction Set Architecture),
+is given in Annex \ref{AnnexA}.
 
 AluVM comes with a set of special-purpose control registers.
 Three of these registers influence the halting conditions of the machine:
 
 \begin{description}
-\item[CH] Halting register. When set to \texttt{true}, halts program when \textbf{CK} is set to the failed state.
-\item[CK] Check register, which is set for any failure (accessing register in \texttt{None} state, zero
-        division, etc.). Can be reset if \textbf{CH} is \texttt{false}.
+\item[CH] Halting register. When set to \texttt{true}, halts the program when \textbf{CK} is set to the failed state.
+\item[CK] Check register, which is set for any failure (accessing register in \texttt{None} state,
+        zero division, etc.). Can be reset if \textbf{CH} is \texttt{false}.
 \item[CO] Test register, which acts as a Boolean test result (also a carry flag).
         Its value is checked by branching and some halting instructions.
 \item[CA] Complexity accumulator / counter.
@@ -499,14 +508,14 @@ input values (values in registers before instruction was executed),
 output values (new values in registers once the instruction is executed)
 and hidden parameters, coming from the external data if they were accessed.
 The execution trace may be encoded using elements of the finite field $\mathbb{F}_q$
-and fed to a zk-STARK prover. Specific details of the encoding and selection of zk-STARK
-prover is outside of the scope of this document and are a subject of future work.
+and fed to a zk-STARK prover. Specific details of the encoding and selection of the zk-STARK prover
+are beyond the scope of this document and are a subject of future work.
 
 To run a program, AluVM must be provided with an unordered set of known \emph{libraries},
 used by the program, and an \emph{entry point} 
 $\mathsf{e} \triangleq \langle \mathsf{Id_{lib}} \in \mathbb{N}^{32}_8, p \in \mathbb{N}_{16} \rangle$,
 consisting of a library id $\mathsf{Id_{lib}}$ and an offset $p$ in the library code segment.
-The number of known libraries is unbounded; so the complexity limit mechanism
+The number of known libraries is unbounded; therefore, the complexity limit mechanism
 is the only way to bound the computation of a program.
 For information about the AluVM library, its structure, constraints, etc. please refer to the
 documentation \cite{AluVM}.
@@ -530,7 +539,7 @@ where $\Theta$ is a contract issue and
 $\mathcal{O}$ is the locally known part of the contract operations
 (excluding the genesis operation $\mathsf{c}_0$ already present in $\Theta$, see below).
 
-The contract \emph{issue} defines \emph{unique} and \emph{global} properties of a contract;
+The \emph{issue} defines the \emph{unique} and \emph{global} properties of the contract;
 it must be known to all parties (i.e., present in each \emph{local contract} instance) and
 it is represented by a tuple
 \noindent
@@ -549,7 +558,7 @@ which components are defined in Table \ref{tab:contract}.
 Symbol & Type & Value range & Meaning \\
 \midrule
 $v$ & $\mathbb{N}_8$ & constant $0$ & RGB issue data structure version \\
-$\mathsf{m}$   & $\langle \mathbb{B}, \mathbb{N}_8, \mathbb{N}_{64}, \mathbb{B}^{48}, \mathbb{S}_*^{[1, 100)?}, \mathbb{S}_\mathsf{printable}^{[1, 4096)} \rangle$ & n/a          & Contract metadata \\
+$\mathsf{m}$   & $\langle \mathbb{B}, \mathbb{N}_8, \mathbb{N}_{64}, \mathbb{B}^{48}, \mathbb{S}_*^{[1, 100)?}, \mathbb{S}_\mathsf{printable}^{[1, 4096)} \rangle$ & n/a & Contract metadata \\
 $\mathsf{k}$   & See Section \ref{Codex} & n/a & Codex \\
 $\mathsf{c}_0$ & See Section \ref{Operation} & n/a & Genesis operation \\
 \bottomrule
@@ -587,7 +596,7 @@ not specifying the exact way of performing the computation itself.
 The mistake of blockchain developers was to put the actual state transition function in
 the blockchain, which does not scale. Client-side validation, implemented in RGB, fixes that.
 
-Thus, an RGB codex defines a state transition \emph{validation} functions,
+Thus, an RGB codex defines a state transition \emph{validation} functions
 which are differentiated by a state transition type:
 a single contract may have multiple forms of state transition,
 which can be seen as mutating methods of the contract.
@@ -640,10 +649,10 @@ Configurations for a zk-AluVM are 3-tuples, which values correspond to:
 \item 64-bit natural number representing the complexity limit (of the \#2 is set).
 \end{enumerate}
 
-For details on complexity limits, please address AluVM documentation \cite{AluVM}.
+For details on complexity limits, please refer to AluVM documentation \cite{AluVM}.
 
-The same codex may be used by multiple contracts in the same way as a class,
-defined with a programming language, may instantiate multiple objects.
+A codex may be used by multiple contracts in the same way as a class,
+defined with an OOP programming language, may instantiate multiple objects.
 
 It is important to note that multiple contracts may reuse the same codex.
 In this way, there appears a natural differentiation between contract issuers and codex developers,
@@ -673,13 +682,13 @@ as described in Section \ref{Memory}.
   and is removed once accessed by any of the contract operations referencing it as one of its inputs.
 
 \item The immutable memory cells represent a \emph{write-once multiple-access} memory (W1M),
-  which is defined by contract operations immutable outputs,
+  which is defined by contract operations immutable outputs
   and accessed by contract operations immutable inputs.
 \end{itemize}
 
 The state of the memory is defined as a result of executing the
 $\mathsf{evaluate}: \mathcal{O} \rightarrow \langle \mathcal{D}, \mathcal{I} \rangle$ procedure,
-as described in the Section \ref{Evaluate}.
+as described in Section \ref{Evaluate}.
 
 \subsection{Contract Operation}\label{Operation}
 
@@ -772,8 +781,8 @@ o_i \prec o_j \Longleftrightarrow (\exists \ y \in \mathcal{Y}_i: y_\mathsf{addr
 which means that if there exists at least one output of $c_i$ which is used by $c_j$, or a global
 state defined in $c_i$ that is read by $c_j$, then $o_i$ precedes $c_j$.
 
-If the $\mathcal{O}$ is not a directed acyclic graph and the above rule cannot be fulfilled without
-collisions, the operation set must be recognized as invalid.
+If $\mathcal{O}$ is not a directed acyclic graph and the above rule cannot be fulfilled without
+collisions, the set of operations must be recognized as invalid.
 
 
 \subsection{Evaluate Procedure}\label{Evaluate}
@@ -781,7 +790,7 @@ collisions, the operation set must be recognized as invalid.
 The contract state is evaluated using the following $\mathsf{evaluate}$ procedure applied to the set of
 contract operations:
 
-\begin{equation}
+\begin{equation}\label{eq:evaluate}
 \begin{split}
 \mathsf{evaluate} \triangleq \forall o_i \in O: \\
 (\forall \ a \in \mathcal{A}_i \ \exists! \ d \in \mathcal{D}_i: \mathsf{addr}(d) = a) \\
@@ -791,14 +800,11 @@ contract operations:
 \Rightarrow 
 \begin{cases}
     \mathcal{D}_{i+1} \mapsto (\mathcal{D}_i \setminus \mathcal{A}_i) \cup \mathcal{Y}_i, \\[6pt]
-    \mathcal{I}_{i+1} \mapsto \mathcal{I}_i \cup \mathsf{global}(c_i) \\
+    \mathcal{I}_{i+1} \mapsto \mathcal{I}_i \cup \mathcal{Z}_i \\
 \end{cases} \\
 \nRightarrow \perp
 \end{split}
 \end{equation}
-
-The first part of the algorithm checks whether an operation is correct and, depending on the result,
-the contract state is either evolved (middle expression) or the further validation terminates.
 
 The $\mathsf{addr}$ procedure returns a memory address for a given memory cell.
 
@@ -811,13 +817,18 @@ and is provided with codex data, a set of known AluVM libraries $\wp$,
 access to the memory and client-side operation data.
 It succeeds if and only if at the halting of the AluVM machine its register \textbf{CK} is not set.
 
+The first part of the algorithm (\ref{eq:evaluate}) checks whether an operation is correct and, in case of success,
+the contract state is evolved (middle expression), or the operation must not be applied to the contract state,
+and further validation must terminate with a failure.
+
 \section{Commitments}\label{Commitments}
 
 Commitments are created using binary data serialization using strict encoding \cite{strict}, specifically:
 \begin{enumerate}
 \item Numbers are serialized in little-endian format,
    using a number of bytes required to cover the bit dimension of the used numeric type.
-\item Sum types (enums, including primitive and with associated data) are prefixed with a 8-bit tag.
+\item Sum types (enums, including primitive types and those with associated data)
+   are prefixed with an 8-bit tag.
 \item Fixed-size arrays are encoded as is, with no prefixing.
 \item Variable-size collections (objects representable as mathematical sets,
    either ordered or unordered, including sequences, partially ordered sets, ordered sets, maps)
@@ -845,9 +856,24 @@ When RGB is used on top of Bitcoin, the following parameters apply:
 
 \begin{enumerate}
 \item A \emph{contract issue} must reference the specific bitcoin blockchain \& network as a value for its
-   $\mathsf{m}_2$ field (layer 1 in contract metadata) using the Table 1.
+field $\mathsf{m}_2$ (\emph{layer 1} in contract metadata) using Table \ref{tab:layer1}.
 \item TxO-based single-use seals must be used, as they are defined in the LNPBP-10 standard \cite{LNPBP10}.
 \end{enumerate}
+
+\begin{coltable}
+\captionof{table}{Values for different Layer 1 used as a part of RGB contract metadata}\label{tab:layer1}
+\begin{tabular}{r l}
+\toprule
+$\mathsf{m}_2$ value & Layer 1 \\
+\midrule
+$0$ & No layer 1 is used \\
+$16$ & Bitcoin blockchain \\
+$17$ & Liquid sidechain \\
+$32$ & Prime \\
+\bottomrule
+\end{tabular}
+\end{coltable}
+
 
 \subsection{Security Assumptions}
 
