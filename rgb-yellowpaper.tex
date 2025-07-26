@@ -1,59 +1,56 @@
-\documentclass[a4paper]{article}
-
-%% Language and font encodings
-\usepackage[english]{babel}
-\usepackage[utf8x]{inputenc}
-\usepackage[T1]{fontenc}
-
-%% Sets page size and margins
-\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
-\usepackage{titlesec}
-\usepackage[titles]{tocloft}
-\usepackage[titletoc,toc,title]{appendix}
-\usepackage[toc]{glossaries}
-
-%% Useful packages
-\usepackage{booktabs}
-\usepackage{authblk}
-\usepackage{amssymb}
+\documentclass[9pt,oneside]{amsart}
+%\usepackage{tweaklist}
+\usepackage{cancel}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{subfig}
 \usepackage{amsmath}
-\usepackage{xcolor}
-\usepackage{eufrak}
+\usepackage{amssymb}
+\usepackage[a4paper,width=170mm,top=18mm,bottom=22mm,includeheadfoot]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{verbatim}
 \usepackage{caption}
-\usepackage[colorinlistoftodos]{todonotes}
-\usepackage[colorlinks=true, allcolors=blue]{hyperref}
-\usepackage{xpatch}
-
+\usepackage{natbib}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{mathtools}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{afterpage}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning}
+\usepackage{glossaries}
+\usepackage{xpatch}
+\usepackage[bookmarks=true, unicode=true, pdftitle={RGB I.0: Scalable Consensus for Client-side Validated Smart Contracts}, pdfauthor={Dr. Maxim Orlovsky},pdfkeywords={RGB, Yellow Paper, blockchain, virtual machine, cryptography, decentralised, client-side validation, Bitcoin, Lightning},pdfborder={0 0 0.5 [1 3]}]{hyperref}
+%,pagebackref=true
 
-\usepackage{graphicx}
-\graphicspath{ {images/} }
+\usepackage{tabu} %requires array.
 
-\usepackage{multicol}
-\setlength{\columnsep}{1cm}
+%This should be the last package before \input{Version.tex}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+% "hyperref loads the url package internally. Use \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref} to pass the option to the url package when it is loaded by hyperref. This avoids any package option clashes." Source: <https://tex.stackexchange.com/questions/3033/forcing-linebreaks-in-url/3034#comment44478_3034>.
+% Note also this: "If the \PassOptionsToPackage{hyphens}{url} approach does not work, maybe it's "because you're trying to load the url package with a specific option, but it's being loaded by one of your packages before that with a different set of options. Try loading the url package earlier than the package that requires it. If it's loaded by the document class, try using \RequirePackage[hyphens]{url} before the document class." Source: <https://tex.stackexchange.com/questions/3033/forcing-linebreaks-in-url/3034#comment555944_3034>.
+% For more information on using the hyperref package, refer to e.g. https://en.wikibooks.org/w/index.php?title=LaTeX/Hyperlinks&stable=0#Hyperlink_and_Hypertarget.
 
-\usepackage{enumitem}
-\setlist{nosep,noitemsep}
+\makeatletter
+ \newcommand{\linkdest}[1]{\Hy@raisedlink{\hypertarget{#1}{}}}
+\makeatother
+\usepackage{seqsplit}
+
+% For formatting
+%\usepackage{underscore}
+%\usepackage{lipsum} % to generate filler text for testing of document rendering
+\usepackage[english]{babel}
+\usepackage[autostyle]{csquotes}
+\MakeOuterQuote{"}
+
+\usepackage[final]{microtype} % https://tex.stackexchange.com/questions/75140/is-it-possible-to-make-latex-mark-overfull-boxes-in-the-output#comment382776_75142
 
 \DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
 
 \DeclareCaptionFormat{myformat}{#1#2#3\hrulefill}
 \captionsetup[figure]{format=myformat}
-
-\newcommand{\listequationsname}{List of Equations}
-\newlistof{equationname}{equ}{\listequationsname}
-\newcommand{\equationname}[1]{\addcontentsline{equ}{equationname}{\protect\numberline{\theequation}#1}\par}
-
-\makeglossaries
-\loadglsentries{glossaries}
-\renewcommand*{\glstextformat}[1]{\textit{#1}}
-
-\title{RGB I.0\\Scalable consensus for client-side validated smart contracts}
-\author[1,2,3]{Dr Maxim Orlovsky\thanks{dr@orlovsky.ch}}
-\affil[1]{LNP/BP Labs \& UBIDECO Labs\\Institute for Distributed and Cognitive Systems\\Lugano\\Switzerland}
-\affil[2]{Pandora Prime SA\\Neuchatel\\Switzerland}
-\date{\it Working Draft\\ June, 2019 - \today}
 
 \makeatletter
 \newinsert\copyrightnote@ins
@@ -112,12 +109,20 @@
   }
 \makeatother
 
-\copyrightnote{Copyright: \copyright 2025 RGB Consortium}
+\makeglossaries
+\loadglsentries{glossaries}
+\renewcommand*{\glstextformat}[1]{\textit{#1}}
+
+\title[RGB I.0: Scalable consensus for client-side validated smart contracts]{RGB I.0\\Scalable consensus for client-side validated smart contracts\\ \smaller{Version I.0}\\ \it Working Draft; \today}
+\author[M. Orlovsky]{Dr. Maxim Orlovsky}
+\dedicatory{LNP/BP Labs \& UBIDECO Labs, Institute for Distributed and Cognitive Systems, Lugano, Switzerland; \\
+Pandora Prime SA, Neuchatel, Switzerland}
+
+\copyrightnote{Copyright: \copyright 2025 RGB Consortium, \copyright 2019-2025 Dr. Maxim Orlovsky. All rights reserved.}
 \copyrightnote{License: Creative Commons BY (CC-BY)}
 
 \begin{document}
 \pagecolor{yellow!10}
-\maketitle
 
 \begin{abstract}
 This paper defines a novel type of consensus for a smart contract system, named RGB,
@@ -139,6 +144,10 @@ polynomial computation, and capability-based access control,
 which makes it distinct from traditional blockchain-based smart contract systems.
 \end{abstract}
 
+\maketitle
+
+\thispagestyle{empty}
+\setlength{\columnsep}{20pt}
 \begin{multicols}{2}
 
 \section{Introduction}
@@ -148,7 +157,6 @@ has been an inspiration for almost a generation.
 However, all existing attempts, such as blockchains, different types of sidechains,
 rollups, state channels, and others, fail to achieve all the required properties
 of the following trilemma:
-
 \begin{itemize}
     \item be scalable independently of the number of participants;
     \item be universal (``Turing-equivalent'');
@@ -163,7 +171,7 @@ With this approach, the state transition does not need to be published globally;
 instead, it is sufficient to make sure that a cryptographic commitment for it
 can be verified as final and singular by all parties participating in the state transition.
 This is achievable with a new class of cryptographic protocols,
-proposed by Peter Todd, named single-use seals \cite{SUS}, which allows
+proposed by Peter Todd, named single-use seals \cite{SUS1, SUS2}, which allows
 to prove both finality and singularity of the transition in a noninteractive way.
 
 Based on ideas of Peter Todd, Giacomo Zucco has proposed an early idea of RGB,
@@ -200,7 +208,6 @@ This paper provides a complete formal description of the first version of the RG
 \section{Used Notations}
 
 We use standard mathematical symbols, including symbols of set theory.
-
 The order of the elements in a set is indicated by $\succ$ and $\prec$.
 
 Terms are defined by $\triangleq$, sets are indexed by subscripts $s_i \in \mathcal{S}$,
@@ -237,8 +244,8 @@ We use a tuple name and serif index to represent a named element of a tuple,
 such as in $\mathsf{c}_i \triangleq \langle \mathsf{C_{Id}}, \ \ldots \rangle$.
 
 Variable-size sets of the same-typed objects (ordered or unordered) are denoted with
-calligraphic uppercase Latin letters (like $\mathcal{S}$).
-For representing set elements we use braces $\{\ldots\}$ and set builder notation \cite{setbuilder}.
+Latin uppercase calligraphic letters (like $\mathcal{S}$).
+For representing set elements, we use braces $\{\ldots\}$ and set builder notation \cite{setbuilder}.
 The type of variable-sized sets is given as an element type with a power component
 specifying the range of cardinality allowed for the set.
 For example, $\mathbb{N}_8^{[0, 32)}$ indicates a sequence of bytes with cardinality (length)
@@ -299,13 +306,34 @@ Components:
 The version of RGB consensus described in this document is named \textbf{RGB-I.0}.
 You can find more about RGB version numbering in the RGB-6 standard \cite{RGB6}.
 
-\end{multicols}
+\section{SONIC Architecture}
 
+Most modern computers use modified von Neumann and Harvard architecture, derived from it.
+While offering a convenient user experience, these architectures were not designed neither for
+arithmetization, required in creation of zk-STARK proofs, nor for distributed system requirements,
+nor for security and formal verification. For example, random-memory access has become the source
+of most hacks and security bridges for more than 50 years.
+So, while it is possible to adopt von Neumann-style architecture for zk-STARK provers
+(one may refer to Cairo \cite{Cairo}), this results in large proof size, high computational resource demand
+and no ability in doing formal analysis of any program.
+
+Instead of following such an approach, RGB is using a different architecture, named SONIC,
+which is specifically designed for formal verification, UTXO-based models, and security.
+The architecture uses a virtual machine zk-AluVM, immutable memory cells of two types
+(read-once memory, R1M; and write-once memory, W1M), and capability-based R1M access.
+
+\subsection{zk-AluVM virtual CPU}\label{AluVM}
+
+AluVM \cite{AluVM} is a modular framework for developing RISC instruction set architectures and registry-based
+virtual machines, based on category theory. RGB uses zk-AluVM version of it, 
+which comes with GFA256 instruction set architecture, supporting arithmetic operations with
+finite field elements. It is extended by USONIC and RGB-specific instructions
+for accessing operation data and memory.
+The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
+
+\end{multicols}
 \begin{figure}[h]
     \centering
-    \caption{Comparison of different computer architectures}
-    \label{fig:arch}
-
     \begin{tikzpicture}[
         node distance=1.5cm and 2.5cm,
         every node/.style={draw, rounded corners, minimum width=2cm, minimum height=1cm, align=center},
@@ -348,34 +376,12 @@ You can find more about RGB version numbering in the RGB-6 standard \cite{RGB6}.
     \draw[flow] (Program2) -- (CPU3);
     
     \end{tikzpicture}
-\end{figure}
 
+    \caption{Comparison of different computer architectures}
+    \label{fig:arch}
+\end{figure}
 \begin{multicols}{2}
 
-\section{SONIC Architecture}
-
-Most modern computers use modified von Neumann and Harvard architecture, derived from it.
-While offering a convenient user experience, these architectures were not designed neither for
-arithmetization, required in creation of zk-STARK proofs, nor for distributed system requirements,
-nor for security and formal verification. For example, random-memory access has become the source
-of most hacks and security bridges for over 50 years.
-So, while it is possible to adopt von Neumann-style architecture for zk-STARK provers
-(one may refer to Cairo \cite{Cairo}), this results in large proof size, high computational resource demand
-and no ability in doing formal analysis of any program.
-
-Instead of following such an approach, RGB is using a different architecture, named SONIC,
-which is specifically designed for formal verification, UTXO-based models, and security.
-The architecture uses a virtual machine zk-AluVM, immutable memory cells of two types
-(read-once memory, R1M; and write-once memory, W1M), and capability-based R1M access.
-
-\subsection{zk-AluVM virtual CPU}\label{AluVM}
-
-AluVM \cite{AluVM} is a modular framework for developing RISC instruction set architectures and registry-based
-virtual machines, based on category theory. RGB uses zk-AluVM version of it, 
-which comes with GFA256 instruction set architecture, supporting arithmetic operations with
-finite field elements. It is extended by USONIC and RGB-specific instructions
-for accessing operation data and memory.
-The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
 
 \subsection{Memory}\label{Memory}
 
@@ -416,7 +422,7 @@ an \gls{authentication token} $\alpha$, and an optional \gls{locking condition} 
 A locking condition, when present as $\ell$, is an entry point into the AluVM program (see next section),
 which should succeed on execution in order for the cell to be read and destroyed.
 If a locking condition is not present, the memory cell is destroyed on the first read operation
-and cannot be anymore accessed or referenced.
+and cannot be accessed or referenced anymore.
 
 \Gls{immutable memory} cells consist of a single \gls{composed value} $\sigma$,
 and an optional binary raw data $\mathcal{R}$, up to $2^{16}$ bytes:
@@ -433,7 +439,7 @@ using ABI rules and the standard library code (see the RGB-1010 standard \cite{R
 
 \subsection{Program}\label{Program}
 
-AluVM operates as a Turing machine, running on a ``tape'' of SONIC program,
+AluVM operates as a Turing machine, running on a ``tape'' of a SONIC program,
 with the following modifications:
 
 \begin{itemize}
@@ -507,7 +513,7 @@ documentation \cite{AluVM}.
 
 \section{Contracts}
 
-Contract is an instance of RGB protocol. RGB consensus operates on the contract level,
+The contract is an instance of the RGB protocol. RGB consensus operates on the contract level,
 and doesn't include (as of version I.0) any cross-contract functionality\footnote{%
 However, one may still achieve cross-contract interaction outside of the consensus layer,
 for instance using atomic swaps.}.
@@ -515,11 +521,11 @@ for instance using atomic swaps.}.
 Since RGB operates as a partially-replicated state machine,
 each party has a partial view over contracts, named \emph{local contract}. 
 A local contract is defined as
-
+\noindent
 \begin{equation}
 \mathsf{C} \triangleq \langle \mathsf{\Theta}, \mathcal{O} \setminus \{ \mathsf{c}_0 \} \rangle
 \end{equation}
-
+\noindent
 where $\Theta$ is a contract issue and
 $\mathcal{O}$ is the locally known part of the contract operations
 (excluding the genesis operation $\mathsf{c}_0$ already present in $\Theta$, see below).
@@ -527,15 +533,12 @@ $\mathcal{O}$ is the locally known part of the contract operations
 The contract \emph{issue} defines \emph{unique} and \emph{global} properties of a contract;
 it must be known to all parties (i.e., present in each \emph{local contract} instance) and
 it is represented by a tuple
-
+\noindent
 \begin{equation}
 \mathsf{\Theta} \triangleq \langle v, \mathsf{m}, \mathsf{k}, \mathsf{c}_0 \rangle
 \end{equation}
-
-The meaning of the symbols is given in Table \ref{tab:contract}.
-
-The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
-$\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
+\noindent
+which components are defined in Table \ref{tab:contract}.
 
 \end{multicols}
 \begin{table}[h]
@@ -552,8 +555,10 @@ $\mathsf{c}_0$ & See Section \ref{Operation} & n/a & Genesis operation \\
 \bottomrule
 \end{tabular}
 \end{table}
-
 \begin{multicols}{2}
+
+The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
+$\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
 
 The contract metadata $\mathsf{m}$ define contract-specific parameters, which include
 (in the order of their position in the tuple):
@@ -579,12 +584,12 @@ its business logic is valid; otherwise, the state transition is invalid and does
 This paves the way to huge scalability as well as much more compact zk-STARK proofs;
 since any zk-proof just proves a result of a computation,
 not specifying the exact way of performing the computation itself.
-The mistake of blockchain developers was to put the actual state transition function into
+The mistake of blockchain developers was to put the actual state transition function in
 the blockchain, which does not scale. Client-side validation, implemented in RGB, fixes that.
 
 Thus, an RGB codex defines a state transition \emph{validation} functions,
 which are differentiated by a state transition type:
-one contract may have multiple forms of state transition,
+a single contract may have multiple forms of state transition,
 which can be seen as mutating methods of the contract.
 
 Next, a codex defines the following contract parameters:
@@ -599,10 +604,12 @@ Next, a codex defines the following contract parameters:
 \end{itemize}
 
 More formally, codex is a tuple
-
+\noindent
 \begin{equation}
 \mathsf{k} \triangleq \langle v, n, d, t, f, q, \mathsf{\Gamma}, \mathsf{\Lambda}, V \rangle
 \end{equation}
+\noindent
+which components are defined in Table \ref{tab:codex}.
 
 \end{multicols}
 \begin{table}[h]
@@ -618,7 +625,7 @@ $t$ & $\mathbb{N}_{64}$ & any & ISO 8601 timestamp of codex creation \\
 $f$ & $\mathbb{B}^{32}$ & constant $0$ & Feature flags (must be zeros in RGB-I.0) \\
 $q$ & $\mathbb{Z}_q$ & $[0, \mathbb{Z}_q)$ & Finite field order \\
 $\mathsf{\Gamma}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a &  zk-AluVM configuration for state transition verification \\
-$\mathsd{\Lambda}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a & zk-AluVM configuration for memory access lock verification \\
+$\mathsf{\Lambda}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a & zk-AluVM configuration for memory access lock verification \\
 $V$ & $\mathbb{N}_{16} \rightarrow \langle \mathbb{N}_8^{32}, \mathbb{N}_{16} \rangle$ & any & Entry points for verification functions using AluVM libs \\
 \bottomrule
 \end{tabular}
@@ -630,7 +637,7 @@ Configurations for a zk-AluVM are 3-tuples, which values correspond to:
 \begin{enumerate}
 \item Boolean flag indicating whether a VM must halt on the first occurrence of a failure;
 \item Boolean indicating whether a complexity limit is set;
-\item 64-bit natural number representing the complexity limit (of the #2 is set).
+\item 64-bit natural number representing the complexity limit (of the \#2 is set).
 \end{enumerate}
 
 For details on complexity limits, please address AluVM documentation \cite{AluVM}.
@@ -648,22 +655,22 @@ and the second being specialists in computer science.
 
 A \emph{local contract state} is fully defined by a set of its operations, $\mathcal{O}$.
 
-Since RGB consensus needs to operate as a polynomial computer with a computation trace being
+Since RGB consensus needs to operate as a polynomial computer with a computation trace that is
 arithmetizable as a set of polynomial constraints, the state of a contract at the level of
-consensus must be always represented by a mathematical construct
-made of elements of the finite field $\mathbb{Z}_q$, provided in the [contract codex](#codex).
-This state is not human-readable and must be processed using a specific ABIs and interfaces
-to be read by humans; however, this part lies outside the consensus definition, belonging
-to the RGB standard library, defined in RGB-1010 standard \cite{RGB1010}.
+consensus must always be represented by a mathematical construct
+made of elements of the finite field $\mathbb{Z}_q$, provided in the contract codex.
+This state is not human-readable and must be processed using specific ABIs and interfaces
+to be read by humans; however, this part is outside the consensus definition, belonging
+to the RGB standard library, defined in the RGB-1010 standard \cite{RGB1010}.
 
 Contract memory is a tuple $\langle \mathcal{D}, \mathcal{I} \rangle$,
 consisting of destructible $\mathcal{D}$ and immutable $\mathcal{I}$ memory cells,
-as described in the Section \ref{Memory}.
+as described in Section \ref{Memory}.
 
 \begin{itemize}
 \item The destructible memory cells represent a \gls{read-once memory} (R1M),
-  which is defined by contract operations destructible outputs and removed once accessed
-  by any of the contract operations referencing it as one of its inputs.
+  which is defined by contract operations with destructible outputs
+  and is removed once accessed by any of the contract operations referencing it as one of its inputs.
 
 \item The immutable memory cells represent a \emph{write-once multiple-access} memory (W1M),
   which is defined by contract operations immutable outputs,
@@ -674,16 +681,17 @@ The state of the memory is defined as a result of executing the
 $\mathsf{evaluate}: \mathcal{O} \rightarrow \langle \mathcal{D}, \mathcal{I} \rangle$ procedure,
 as described in the Section \ref{Evaluate}.
 
-
 \subsection{Contract Operation}\label{Operation}
 
 Contract operation is a tuple
 \begin{equation}
 o_i \triangleq \langle \mathsf{c}_i, S_i, u_i \rangle
 \end{equation}
-\noident
-consisting of:
 
+\columnbreak
+\noindent
+consisting of:
+\noindent
 \begin{itemize}
 \item client-side information of contract state change, represented by a tuple $\mathsf{c}_i$;
 \item an unordered map of seal definitions performed by an operation,
@@ -694,11 +702,11 @@ consisting of:
 \end{itemize}
 
 A client-side part of the operation is represented by a tuple
-
+\noindent
 \begin{equation}
 \mathsf{c}_i \triangleq \langle v, \mathsf{C_Id}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
 \end{equation}
-\noident
+\noindent
 which meaning is given in the table \ref{tab:op}.
 
 \end{multicols}
@@ -721,23 +729,22 @@ $\mathcal{Z}$ & $\{\mathbb{I}\}_\preceq^{[0, 2^{16})}$ & Immutable memory declar
 \bottomrule
 \end{tabular}
 \end{table}
-
 \begin{multicols}{2}
 
-Contract \emph{genesis} is a special type of operation, containing no input:
-
+The contract \emph{genesis} is a special type of operation, which contains no input:
+\noindent
 \begin{equation}
 \mathsf{c}_0 \triangleq \langle \pi, \mathsf{k_{Id}}, \phi, \lambda, \Upsilon, \varnothing, \varnothing, \mathcal{Y}, \mathcal{Z} \rangle
 \end{equation}
 
 Each operation is identified by an operation id, $\mathsf{Id}(c_i)$, which is computed by
 hashing serialized data for the client-side part of the operation,
-as described in Section \ref{Commitments}. For the genesis, the value of $\mathsf{k_{Id}}$
-is replaced with the value of $\mathsf{C_{Id}}$ before the operation id is computed.
+as described in Section \ref{Commitments}. For genesis, the value of $\mathsf{k_{Id}}$
+is replaced by the value of $\mathsf{C_{Id}}$ before the id of the operation is calculated.
 
 \subsection{Set of Operations}
 
-Each contract is defined by a partially ordered set of contract operations 
+Each contract is defined by a partially ordered set of contract operations
 $\mathcal{O} \triangleq \{ o_i \}$.
 An element of this set is a tuple, $o_i \triangleq \langle c_i, S_i, u_i \rangle$, consisting of:
 \begin{itemize}
@@ -753,7 +760,7 @@ The set $\mathcal{O}$ has an initial element, called \emph{genesis} $o_0$, for w
 There might be other operations for which $u_i = \varnothing$;
 these operations are named \emph{state extensions}.
 
-All operations in $\mathcal{O}$ are partially ordered via rule
+All operations in $\mathcal{O}$ are partially ordered by the rule
 
 \begin{equation}
 \begin{split}
@@ -763,9 +770,9 @@ o_i \prec o_j \Longleftrightarrow (\exists \ y \in \mathcal{Y}_i: y_\mathsf{addr
 \end{equation}
 
 which means that if there exists at least one output of $c_i$ which is used by $c_j$, or a global
-state defined in $c_i$ which is read by $c_j$, than $o_i$ precedes $c_j$.
+state defined in $c_i$ that is read by $c_j$, then $o_i$ precedes $c_j$.
 
-If the $\mathcal{O}$ is not a directed acyclic graph and the above rule can't be fulfilled without
+If the $\mathcal{O}$ is not a directed acyclic graph and the above rule cannot be fulfilled without
 collisions, the operation set must be recognized as invalid.
 
 
@@ -790,16 +797,16 @@ contract operations:
 \end{split}
 \end{equation}
 
-The first part of the algorithm checks whether an operation is correct, and depending on the result,
+The first part of the algorithm checks whether an operation is correct and, depending on the result,
 the contract state is either evolved (middle expression) or the further validation terminates.
 
 The $\mathsf{addr}$ procedure returns a memory address for a given memory cell.
 
-The $\mathsf{verify}$ procedure performs verification of a set of single-use seals and a witness
+The procedure $\mathsf{verify}$ performs the verification of a set of single-use seals and a witness
 according to the LNPBP-8 standard \cite{LNPBP8}.
 
-The $\mathsf{exec}$ procedure executes verification program and 
-programs checking fulfillment of individual lock conditions for the spent inputs,
+The $\mathsf{exec}$ procedure executes a verification program
+and programs verifying fulfillment of individual lock conditions for the spent inputs,
 and is provided with codex data, a set of known AluVM libraries $\wp$,
 access to the memory and client-side operation data.
 It succeeds if and only if at the halting of the AluVM machine its register \textbf{CK} is not set.
@@ -816,18 +823,18 @@ Commitments are created using binary data serialization using strict encoding \c
    either ordered or unordered, including sequences, partially ordered sets, ordered sets, maps)
    are prefixed with the size of the collection (cardinal number) in little-endian format,
    using the number of bytes which fully covers the maximal allowed collection dimension;
-   followed by elements of the collection, serialized one after other.
+   followed by elements of the collection, serialized one after the other.
 \item Totally ordered sets must be serialized in the order of the elements
 \item Partially ordered and unordered sets do not participate in the RGB consensus.
 \item Maps are serialized with elements corresponding to the key and value, composed as a tuple.
-   Keys of the ordered maps must represent a totally ordered set and
-   define the order of the serialization of key-value tuples.
+   The keys of the ordered maps must represent a totally ordered set
+   and define the order of serialization of key-value tuples.
 \item Product types (tuples) are serialized according to the order of their elements, with no prefixes.
 \end{enumerate}
 
-Data are serialized into the hashers, which usually uses a prefix (tagged) to uniquely codify
+Data are serialized into hashers, which usually use a prefix (tagged) to uniquely codify
 the type of the produced commitment. Collections may also be merklized, in order to allow
-compact profs of inclusion. The complete structure of data serialization for producing commitments,
+compact profs of inclusion. The complete structure of data serialization to produce commitments,
 including tagged prefixes and details of merklization, is given in the Annex \ref{AnnexB}.
 
 
@@ -837,14 +844,14 @@ including tagged prefixes and details of merklization, is given in the Annex \re
 When RGB is used on top of Bitcoin, the following parameters apply:
 
 \begin{enumerate}
-\item A \emph{contract issue} must reference specific bitcoin blockchain \& network as a value for its
+\item A \emph{contract issue} must reference the specific bitcoin blockchain \& network as a value for its
    $\mathsf{m}_2$ field (layer 1 in contract metadata) using the Table 1.
 \item TxO-based single-use seals must be used, as they are defined in the LNPBP-10 standard \cite{LNPBP10}.
 \end{enumerate}
 
 \subsection{Security Assumptions}
 
-The security of RGB consensus relies on the following two assumptions
+The security of RGB consensus relies on the following two assumptions:
 
 \begin{itemize}
 \item The selected cryptographic hash function is collision-resistant;
@@ -853,19 +860,24 @@ The security of RGB consensus relies on the following two assumptions
 
 \subsection{Reference Implementation}
 
-The reference implementation is provided in repositories, and libraries are listed
-in the Consensus section of RGB-3 standard \cite{RGB3}.
+The reference implementation is provided in the repositories, and the libraries are listed
+in the consensus section of the RGB-3 standard \cite{RGB3}.
 
 \section{Acknowledgments}
 The whole work was inspired by the earlier ideas of Peter Todd on the client-side validation \cite{CSV}
-and single-use seals \cite{SUS} protocols. Giacomo Zucco was the first, who had analyzed its possible
-applications and implications for Bitcoin blockchain and Lightning Network.
+and single-use seals \cite{SUS1, SUS2} protocols. Giacomo Zucco was the first, who had analyzed its possible
+applications and implications for Bitcoin blockchain and Lightning Network \cite{Zucco}.
 Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol.
 Olga Ukolova had provided a lot of feedback and comments during the protocol design phase.
 
 
 \bibliographystyle{plain}
 \begin{thebibliography}{9}
+\bibitem{Szabo} \textsc{Smart Contracts} \url{https://nakamotoinstitute.org/library/smart-contracts/}
+\bibitem{CSV} \textsc{Progress on Scaling via Client-Side Validation} \url{https://milan2016.scalingbitcoin.org/files/presentations/D2%20-%20A%20-%20Peter%20Todd.pdf}
+\bibitem{SUS1} \textsc{Preventing Consensus Fraud with Commitments and Single-Use-Seals} \url{https://petertodd.org/2016/commitments-and-single-use-seals}
+\bibitem{SUS2} \textsc{Building Blocks of the State Machine Approach to Consensus} \url{https://petertodd.org/2016/state-machine-consensus-building-blocks}
+\bibitem{Zucco} \textsc{Giacomo Zucco and RGB Tokens Built on Bitcoin} \url{https://bitcoinmagazine.com/culture/video-interview-giacomo-zucco-rgb-tokens-built-bitcoin}
 \bibitem{RGB3} \textsc{RGB-3 Standard}, \url{https://github.com/RGB-WG/RFC/blob/master/RGB-0003.md}
 \bibitem{RGB6} \textsc{RGB-6 Standard}, \url{https://github.com/RGB-WG/RFC/blob/master/RGB-0006.md}
 \bibitem{RGB1010} \textsc{RGB-1010 Standard}, \url{https://github.com/RGB-WG/RFC/blob/master/RGB-1010.md}
@@ -885,11 +897,12 @@ Olga Ukolova had provided a lot of feedback and comments during the protocol des
 \section{RGB Instruction Set Architecture}\label{AnnexA}
 % Appendix I content here
 
+\newpage
 \section{Commitments Specification}\label{AnnexB}
 % Appendix II content here
 
 \newpage
-
+\section{}\label{AnnexC}
 \printglossaries
 
 \end{document}
