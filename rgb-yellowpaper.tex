@@ -117,7 +117,7 @@
 \loadglsentries{glossaries}
 \renewcommand*{\glstextformat}[1]{\textit{#1}}
 
-\title[RGB I.0: Scalable consensus for client-side validated smart contracts]{RGB I.0\\Scalable consensus for client-side validated smart contracts\\ \smaller{Version I.0}\\ \it Working Draft; \today}
+\title[RGB I.0: Scalable consensus for client-side validated smart contracts]{RGB I.0\\Scalable consensus for client-side validated smart contracts\\ \it \today}
 \author[M. Orlovsky]{Dr. Maxim Orlovsky}
 \dedicatory{LNP/BP Labs \& UBIDECO Labs, Institute for Distributed and Cognitive Systems, Lugano, Switzerland; \\
 Pandora Prime SA, Neuchatel, Switzerland}
@@ -129,23 +129,28 @@ Pandora Prime SA, Neuchatel, Switzerland}
 \pagecolor{yellow!10}
 
 \begin{abstract}
-This paper defines a novel type of consensus for a smart contract system, named RGB,
-which is based on the concept of client-side validation,
+The paper defines a novel type of consensus for a smart contract system, 
+named RGB, which is based on the concept of client-side validation,
 separating the contract state and operations from the blockchain.
 With this approach, contracts are sharded (each contract is a standalone shard),
 kept, and validated only by contract participants,
 providing native scalability and privacy mechanisms,
-exceeding abilities of all existing blockchain-based smart contracts
+exceeding all existing blockchain-based smart contract systems
 while not compromising on security or decentralization.
 The client-side validated distributed smart contracting system is
-designed to operate on top of an UTXO-based blockchain (e.g., Bitcoin)
+designed to operate on top of compatible layers 1,
+such as an UTXO-based blockchain (e.g., Bitcoin)
 without relying on it for transaction ordering or state replication.
-Instead, RGB employs a novel SONIC (State machine with Ownership Notation Involving Capabilities) architecture,
-leveraging the zk-AluVM virtual machine and zero-knowledge STARK proofs
-for scalability, security, and formal verification.
-The protocol emphasizes partially replicated state machines (PRiSM),
-polynomial computation, and capability-based access control,
+Instead, RGB employs a novel SONIC
+(State machine with Ownership Notation Involving Capabilities) architecture,
+which provides capability-based access control to the contract state,
+individually owned by a well-defined contract parties via novel single-use seal mechanism.
+RGB does state validation using zk-AluVM virtual machine, designed to support zk-STARK provers.
+It has a single security assumption of the collision-resistance hash function,
+and, thus, is quantum-secure.
+The protocol acts as partially replicated state machines (PRiSM),
 which makes it distinct from traditional blockchain-based smart contract systems.
+Thus, the proposed RGB consensus is scalable, provably-secure, and formally verifiable.
 \end{abstract}
 
 \maketitle
@@ -211,18 +216,19 @@ since it does not fulfill any of the properties defining a distributing consensu
 \end{itemize}
 
 Instead, RGB runs its own \emph{client-side validated consensus}, where blockchain consensus
-acts as one of the components, the \emph{single-use seal} medium.
+acts as one of the components, the \emph{single-use seal} medium \cite{LNPBP8}.
+The consensus is quantum-secure (as the underlying layer 1 network is not cryptographically secure),
+being based on cryptographic hash functions, not using elliptic-curve cryptography.
+It does not rely on any security assumptions other than collision resistance of the selected
+cryptographic hash function.
 This paper provides a complete formal description of the first version of the RGB consensus.
 
 \section{Used Notations}
 
 We use standard mathematical symbols, including symbols of set theory.
-The order of the elements in a set is indicated by $\succ$ and $\prec$.
+Sets are indexed with subscripts $s_i \in \mathcal{S}$.
 
-Terms are defined by $\triangleq$, sets are indexed by subscripts $s_i \in \mathcal{S}$,
-logical conditions are done with $\land$ (AND), $\lor$ (OR) and $\lnot$ (NOT),
-$\Longleftrightarrow$ is used for \emph{if and only if} condition,
-$\Rightarrow$ for \emph{than}, $\nRightarrow$ for \emph{else}, and $\perp$ is a program termination.
+\subsection{Data types}
 
 Data types are defined using standard mathematical number sets, such as
 natural numbers $\mathbb{N}$, integers $\mathbb{Z}$,
@@ -238,6 +244,10 @@ Named data types are represented with capital Latin letters using \LaTeX\ $\math
 For example, the Boolean type is defined as a set $\mathbb{B} \triangleq \{0, 1\}$.
 
 Scalar variables are given with Latin and Greek lowercase letters.
+The basis for nondecimal scalar literals is given in subscript,
+for example, $10_2$ equals $2$ in decimal notation. Decimal literals omit basis subscript.
+
+\subsubsection{Product types}
 
 Tuples (ordered fixed-size set of objects of a different type) are denoted with angular brackets
 $\langle \ldots \rangle$ to list the tuple elements
@@ -252,7 +262,21 @@ with individual values being a lowercase indexed version of the same letter
 We use a tuple name and serif index to represent a named element of a tuple,
 such as in $\mathsf{c}_i \triangleq \langle \mathsf{C_{Id}}, \ \ldots \rangle$.
 
-Variable-size sets of the same-typed objects (ordered or unordered) are denoted with
+\subsubsection{Sum types}
+
+Enums (sub types) are represented as sets, and enum variables as a values picked from the set.
+Optional values are represented as belonging to the set $\{ \varnothing, x \}$.
+
+Enums with no associated data are tagged with names,
+with a $\mathbb{N}_8$ value used in data serialization given as a subscript,
+for example $\{ \mathsf{false}|_{=0}, \mathsf{true}|_{=1} \}$.
+
+Enum values with associated data do provide content of the associated type as set members;
+they may include tagged names as a part of the subscript: $( x|_{\mathsf{variantA}=0}, y|_{=1})$.
+
+\subsubsection{Collections}
+
+Collections (variable-size sets of the same-typed objects, both ordered or unordered) are denoted with
 Latin uppercase calligraphic letters (like $\mathcal{S}$).
 For representing set elements, we use braces $\{\ldots\}$ and the set builder notation \cite{setbuilder}.
 The type of variable-sized sets is given as an element type with a power component
@@ -271,7 +295,9 @@ Unicode strings are represented as a sequence made up of $\mathbb{U}$ set elemen
 (UTF-8 character set); ASCII strings as a sequence made up of $\mathbb{S}$ set elements.
 If there are constraints on the type of ASCII characters that can be used in a string,
 the constraint is either given verbally as an index (for example, $\mathbb{S}_\mathsf{printable}$),
-or as a wildcard $`\mathbb{S}_*`$ with detailed explanation of the constraints given in the text.
+or as a wildcard $\mathbb{S}_*$ with detailed explanation of the constraints given in the text.
+
+\subsection{Function types}
 
 Functions with a well-defined algorithm are denoted by small-case Latin serif names,
 followed by a dot, function domain, arrow, and function codomain,
@@ -282,7 +308,19 @@ and their application as $\phi(x)$.
 Inline functions depending on their previous values are defined using
 $\mapsto$ instead of $\rightarrow$.
 
-All numbers are encoded into and from a byte-strings with a little-endian convention.
+\subsection{Operators}
+The order of the elements in a set is indicated by $\succ$ and $\prec$.
+Terms are defined by $\triangleq$.
+
+\subsubsection{Logical operators}
+Logical conditions are specified with $\land$ (AND), $\lor$ (OR) and $\lnot$ (NOT)
+
+\subsubsection{Conditionals}
+$\Longleftrightarrow$ is used for \emph{if and only if} condition,
+$\Rightarrow$ for \emph{than}, $\nRightarrow$ for \emph{else}, $\perp$ for program termination.
+
+\subsubsection{Bitwise operators}
+Bitwise binary operations are specified with $\&$ (AND), $|$ (OR), $\nleftrightarrow$ (XOR) and $\thicksim$ (NOT)
 
 \section{Protocol Overview}
 
@@ -315,36 +353,11 @@ Components:
 The version of RGB consensus described in this document is named \textbf{RGB-I.0}.
 You can find more about RGB version numbering in the RGB-6 standard \cite{RGB6}.
 
-\section{SONIC Architecture}
-
-Most modern computers use modified von Neumann and Harvard architecture, derived from it.
-While offering a convenient user experience, these architectures were not designed neither for
-arithmetization, required in creation of zk-STARK proofs, nor for distributed system requirements,
-nor for security and formal verification. For example, random-memory access has been the source
-of most hacks and security bridges for more than 50 years.
-So, while it is possible to adopt von Neumann-style architecture for zk-STARK provers
-(one may refer to Cairo \cite{Cairo}), this results in large proof size, high computational resource demand
-and no ability in doing formal analysis of any program.
-
-Instead of following such an approach, RGB is using a different architecture, named SONIC,
-which is specifically designed for formal verification, UTXO-based models, and security.
-The architecture uses a virtual machine zk-AluVM, immutable memory cells of two types
-(read-once memory, R1M; and write-once memory, W1M), and capability-based R1M access.
-
-\subsection{zk-AluVM virtual CPU}\label{AluVM}
-
-AluVM \cite{AluVM} is a modular framework for developing RISC instruction set architectures and registry-based
-virtual machines, based on category theory. RGB uses zk-AluVM version of it, 
-which comes with \textbf{GFA256} instruction set architecture, which supports arithmetic operations with
-finite field elements (see Table \ref{tab:gfa256}). It is extended by \textbf{USONIC} instructions
-for accessing operation data and memory (see Table \ref{tab:usonic}).
-The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
-
 \end{multicols}
 \begin{figure}[h]
     \centering
     \begin{tikzpicture}[
-        node distance=1.5cm and 2.5cm,
+        node distance=1cm and 2.5cm,
         every node/.style={draw, rounded corners, minimum width=2cm, minimum height=1cm, align=center},
         capability/.style={->, thick},
         dataflow/.style={<->, thick},
@@ -352,7 +365,7 @@ The complete specification on the instruction set architecture is given in Annex
     ]
     
     % von Neumann Architecture
-    \node[draw=none, align=left] at (-4.5,3.5) {\textbf{von Neumann Architecture}};
+    \node[draw=none, align=left] at (-5,3) {\textbf{von Neumann Architecture}};
     \node (IO1) at (-6,2) {I/O};
     \node (CPU1) [right=of IO1] {CPU};
     \node (RAM1) [right=of CPU1] {RAM};
@@ -361,8 +374,8 @@ The complete specification on the instruction set architecture is given in Annex
     \draw[dataflow] (CPU1) -- (RAM1);
     
     % Harvard Architecture
-    \node[draw=none, align=left] at (-5,0.5) {\textbf{Harvard Architecture}};
-    \node (IO2) at (-6,-1) {I/O};
+    \node[draw=none, align=left] at (-5.5,0.5) {\textbf{Harvard Architecture}};
+    \node (IO2) at (-6,-0.5) {I/O};
     \node (CPU2) [right=of IO2] {CPU};
     \node (RAM2) [right=of CPU2] {RAM};
     \node (Program1) [below=of CPU2] {Program};
@@ -372,8 +385,8 @@ The complete specification on the instruction set architecture is given in Annex
     \draw[flow] (Program1) -- (CPU2);
     
     % SONIC Architecture
-    \node[draw=none, align=left] at (-5,-4.5) {\textbf{SONIC Architecture}};
-    \node (Operation) at (-6, -6) {Operation};
+    \node[draw=none, align=left] at (-5.5,-3.8) {\textbf{SONIC Architecture}};
+    \node (Operation) at (-6, -5) {Operation};
     \node (CPU3) [right=of Operation] {CPU};
     \node (R1M) [right=of CPU3] {R1M};
     \node (W1M) [below=of R1M] {W1M};
@@ -391,6 +404,72 @@ The complete specification on the instruction set architecture is given in Annex
 \end{figure}
 \begin{multicols}{2}
 
+\section{SONIC Architecture}
+
+Most modern computers use modified von Neumann \cite{vonNeumann},
+Harvard architecture, and modified Harvard architecture \cite{Harvard}.
+While offering a convenient user experience, these architectures were not designed neither for
+arithmetization, required in creation of zk-STARK proofs, nor for distributed system requirements,
+nor for security and formal verification. For example, random-memory access has been the source
+of most hacks and security bridges for more than 50 years.
+
+While it is possible to adopt von Neumann-style architecture for zk-STARK provers
+(one may refer to Cairo \cite{Cairo}), this results in large proof size, high computational resource demand
+and no ability in doing formal analysis of any program.
+Instead of following such an approach, RGB is using a different architecture, named SONIC (see Figure \ref{fig:arch}),
+which is specifically designed for formal verification, UTXO-based models, and security.
+The architecture uses a virtual machine zk-AluVM, immutable memory cells of two types
+(read-once memory, R1M; and write-once memory, W1M), and capability-based R1M access.
+
+\subsection{zk-AluVM virtual CPU}\label{AluVM}
+
+zk-AluVM (algorithmic logic unit VM) is a pure functional RISC virtual machine
+designed for deterministic portable computing tasks \cite{zkAluVM}.
+It is implemented AluVM \cite{AluVM, AluVMCrate},
+a modular framework for creating  RISC instruction set architectures (ISA)
+and registry-based virtual machines, based on category theory.
+
+\subsubsection{Instruction Set Architecture}
+
+zk-AluVM extends the AluVM execution control flow ISA (see Table \ref{tab:aluvm})
+with \textbf{GFA256} ISA for arithmetic operations with finite field elements (see Table \ref{tab:gfa256}).
+It is further extended by \textbf{USONIC} ISA for accessing operation data and memory (see Table \ref{tab:usonic}).
+The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
+
+\subsubsection{Control Registers}\label{Registers}
+
+Control registers are a part of the base AluVM ISA.
+The are used for the program execution workflow and do not participate
+as explicit arguments for the instructions (however, their value may be accessed or changed
+by some of the instructions, as specified in Annex \ref{AnnexA}).
+
+\begin{description}
+\item[CH] Halting register. When set to \texttt{true},
+    halts the program when \textbf{CK} is set to the failed state.
+\item[CK] Check register with values taken from $\{\mathsf{ok}|_{=0}, \mathsf{failire}|_{=1}\}$.
+    On a failure (like accessing register in \texttt{None} state,
+    zero division, etc.) the register is sat into the failed state.
+    Can be reset if \textbf{CH} is \texttt{false}.
+\item[CO] Test register, which acts as a Boolean test result.
+    Its value is checked by branching and some halting instructions.
+\item[CA] Complexity accumulator / counter, as a $\mathbb{N}_{64}$ number.
+    Each instruction has a computational complexity measure.
+    This register sums up the complexity of the instructions executed.
+\item[CL] Complexity limit, as an optional value $\{\varnothing, \mathbb{N}_{64}\}$.
+    If the register has a value, once \textbf{CA} reaches or exceeds it,
+    the VM will set \textbf{CK} in a failed state.
+\item[CS] Call stack, $\{ \mathbb{E} \}^{[0, 256)}$, listing call entry points
+    (see definition of the entry point in Section \ref{Program} and equation \ref{eq:e}).
+\end{description}
+
+\subsubsection{\textbf{GFA256} Registers}
+
+The \textbf{GFA256} ISA defines \textbf{FQ} constant (read-only) register,
+which contains the order $q$ of the used finite field $\mathbb{F}_q$; and 
+16 general registers to store finite field element values,
+from \textbf{E1} to \textbf{E8}, and from \textbf{EA} to \textbf{EH}.
+All registers are equivalent in their functionality and can be used
+as arguments in the instructions shown in Table \ref{tab:gfa256}.
 
 \subsection{Memory}\label{Memory}
 
@@ -407,7 +486,7 @@ The SONIC architecture supports two types of addressed memory:
 Both types of memory are made of addressable memory cells.
 An address consists of a 256-bit id of operation and 16-bit output number
 which creates the memory cell:
-
+\noindent
 \begin{gather}
 \mathbb{A} \triangleq \mathbb{N}^{32}_8 \times \mathbb{N}_{16} \\
 \mathsf{a} \triangleq \langle \mathsf{Id}(c_i), j \rangle \in \mathbb{A}
@@ -415,21 +494,21 @@ which creates the memory cell:
 
 Memory data are based on \glspl{composed value} data type,
 which is an ordered sequence of zero to four finite field elements:
-
+\noindent
 \begin{equation}
 \mathbb{V} \triangleq \bigcup_{n=0}^{4} \mathbb{F}_q^n
 \end{equation}
 
 \Gls{read-once memory} cells consist of a single \gls{composed value} $\sigma$,
 an \gls{authentication token} $\alpha$, and an optional \gls{locking condition} $\mathcal{L}$:
-
+\noindent
 \begin{gather}
 \mathbb{D} \triangleq \mathbb{V} \times \mathbb{F}_q \times \{ \varnothing, \langle \mathbb{V}, \{ \varnothing, \mathbb{E} \} \rangle \} \\
 \forall \mathsf{d}_i \in \mathcal{D}(\mathsf{a}) : \mathsf{d}_i \triangleq \langle \sigma, \alpha, \mathcal{L} \rangle \in \mathbb{D}
 \end{gather}
 
-A locking condition, when present as $\langle \xi, \ell \rangle \in \mathcal{L} \setminus \{ \varnothing \}$,
-consists of an auxiliary data $\xi$ and an optional entry point in a verification program $\ell$
+A locking condition, when present as $\langle \theta, \ell \rangle \in \mathcal{L} \setminus \{ \varnothing \}$,
+consists of an auxiliary data $\theta$ and an optional entry point in a verification program $\ell$
 (for the definition of $\mathbb{E}$ please refer to (\ref{eq:e})).
 
 The auxiliary data may be used by the codex verifier script or the custom locking script $\ell$
@@ -447,7 +526,7 @@ and cannot be accessed or referenced anymore.
 
 \Gls{immutable memory} cells consist of a single \gls{composed value} $\varsigma$,
 and an optional binary raw data $\mathcal{R}$, up to $2^{16}$ bytes:
-
+\noindent
 \begin{gather}
 \mathbb{I} \triangleq \mathbb{V} \times \{ \varnothing, \mathbb{N}_8^{[0; 2^{16})} \}_\preceq \\
 \forall \mathsf{e}_i \in \mathcal{I}(\mathsf{a}) : \mathsf{e}_i \triangleq \langle \varsigma, \mathcal{R} \rangle \in \mathbb{I}
@@ -481,22 +560,9 @@ The complete list of all instructions and their encodings,
 as well as information about registers (i.e., Instruction Set Architecture),
 is given in Annex \ref{AnnexA}.
 
-AluVM comes with a set of special-purpose control registers.
+AluVM comes with a set of special-purpose control registers, described in the Section \ref{Registers}.
 Three of these registers influence the halting conditions of the machine:
-
-\begin{description}
-\item[CH] Halting register. When set to \texttt{true}, halts the program when \textbf{CK} is set to the failed state.
-\item[CK] Check register, which is set for any failure (accessing register in \texttt{None} state,
-        zero division, etc.). Can be reset if \textbf{CH} is \texttt{false}.
-\item[CO] Test register, which acts as a Boolean test result (also a carry flag).
-        Its value is checked by branching and some halting instructions.
-\item[CA] Complexity accumulator / counter.
-        Each instruction has a computational complexity measure.
-        This register sums up the complexity of the instructions executed.
-\item[CL] Complexity limit. If this register has a value, once \textbf{CA} reaches or exceeds it,
-        the VM will set \textbf{CK} in a failed state.
-\item[CS] Call stack, limited to $256$ elements.
-\end{description}
+\textbb{CK}, \textbb{CH} and \textbb{CL}.
 
 The program halts on the following conditions:
 
@@ -564,27 +630,11 @@ The \emph{issue} defines the \emph{unique} and \emph{global} properties of the c
 it must be known to all parties (i.e., present in each \emph{local contract} instance) and
 it is represented by a tuple
 \noindent
-\begin{equation}
+\begin{equation}\label{eq:issue}
 \mathsf{\Theta} \triangleq \langle v, \mathsf{m}, \mathsf{k}, \mathsf{c}_0 \rangle
 \end{equation}
 \noindent
 which components are defined in Table \ref{tab:contract}.
-
-The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
-$\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
-
-The contract metadata $\mathsf{m}$ define contract-specific parameters, which include
-(in the order of their position in the tuple):
-
-\begin{enumerate}
-\item boolean indicating whether the contract is a test contract,
-\item a specific consensus layer 1 used by the contract,
-\item ISO 8601 timestamp of the moment the contract is issued,
-\item a set of feature flags (must be zeros for RGB-I.0),
-\item optional name of the contract, which must start with a capital letter or a \texttt{\_} symbol,
-  and may contain up to 99 ASCII letters, numbers, or \texttt{\_} symbol,
-\item an identity string of the contract issuer, made of ASCII printable characters.
-\end{enumerate}
 
 \end{multicols}
 \begin{table}[h]
@@ -603,6 +653,37 @@ $\mathsf{c}_0$ & See Section \ref{Operation} & n/a & Genesis operation \\
 \end{table}
 \begin{multicols}{2}
 
+The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
+$\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
+
+The contract metadata $\mathsf{m}$ define contract-specific parameters, which include
+(in the order of their position in the tuple):
+
+\begin{enumerate}
+\item boolean indicating whether the contract is a test contract,
+\item a specific consensus layer 1 used by the contract
+  (see Table \ref{tab:layer1} for the list of possible values),
+
+\begin{coltable}
+\captionof{table}{Values for different Layer 1 used as a part of RGB contract metadata}\label{tab:layer1}
+\begin{tabular}{r l}
+\toprule
+$\mathsf{m}_2$ value & Layer 1 \\
+\midrule
+$0_{16}$ & No layer 1 is used \\
+$10_{16}$ & Bitcoin blockchain \cite{Bitcoin} \\
+$11_{16}$ & Liquid sidechain \cite{Liquid} \\
+$20_{16}$ & Prime \cite{Prime} \\
+\bottomrule
+\end{tabular}
+\end{coltable}
+
+\item ISO 8601 timestamp of the moment the contract is issued,
+\item a set of feature flags (must be zeros for RGB-I.0),
+\item optional name of the contract, which must start with a capital letter or a \texttt{\_} symbol,
+  and may contain up to 99 ASCII letters, numbers, or \texttt{\_} symbol,
+\item an identity string of the contract issuer, made of ASCII printable characters.
+\end{enumerate}
 
 \subsection{Codex}\label{Codex}
 
@@ -641,27 +722,6 @@ More formally, codex is a tuple
 \noindent
 which components are defined in Table \ref{tab:codex}.
 
-\end{multicols}
-\begin{table}[h]
-\centering
-\caption{Specification of symbols used in the RGB codex}\label{tab:codex}
-\begin{tabular}{ l l c p{8cm} }
-\toprule
-Symbol & Type & Value range & Meaning \\
-\midrule
-$v$ & $\mathbb{N}_8$ & constant $0$ & RGB codex data structure version \\
-$n$ & $\mathbb{N}_8^{[0, 255]}$ & n/a & Contract name, parsed as Unicode UTF-8 string \\
-$t$ & $\mathbb{N}_{64}$ & any & ISO 8601 timestamp of codex creation \\
-$f$ & $\mathbb{B}^{32}$ & constant $0$ & Feature flags (must be zeros in RGB-I.0) \\
-$q$ & $\mathbb{Z}_q$ & $[0, \mathbb{Z}_q)$ & Finite field order \\
-$\mathsf{\Gamma}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a &  zk-AluVM configuration for state transition verification \\
-$\mathsf{\Lambda}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a & zk-AluVM configuration for memory access lock verification \\
-$V$ & $\mathbb{N}_{16} \rightarrow \langle \mathbb{N}_8^{32}, \mathbb{N}_{16} \rangle$ & any & Entry points for verification functions using AluVM libs \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{multicols}{2}
 
 Configurations for a zk-AluVM are 3-tuples, which values correspond to:
 \begin{enumerate}
@@ -681,6 +741,28 @@ with the former being specializing in financial services, assets, etc;
 and the second being specialists in computer science.
 
 
+\end{multicols}
+\begin{table}[h]
+\centering
+\caption{Specification of symbols used in the RGB codex}\label{tab:codex}
+\begin{tabular}{ l l c p{8cm} }
+\toprule
+Symbol & Type & Value range & Meaning \\
+\midrule
+$v$ & $\mathbb{N}_8$ & constant $0$ & RGB codex data structure version \\
+$n$ & $\mathbb{N}_8^{[0, 255]}$ & n/a & Contract name, parsed as Unicode UTF-8 string \\
+$t$ & $\mathbb{N}_{64}$ & any & ISO 8601 timestamp of codex creation \\
+$f$ & $\mathbb{B}^{32}$ & constant $0$ & Feature flags (must be zeros in RGB-I.0) \\
+$q$ & $\mathbb{Z}_q$ & $[0, \mathbb{Z}_q)$ & Finite field order \\
+$\mathsf{\Gamma}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a &  zk-AluVM configuration for state transition verification \\
+$\mathsf{\Lambda}$ & $\langle \mathbb{B}, \mathbb{B}, \mathbb{N}_{64} \rangle$ & n/a & zk-AluVM configuration for memory access lock verification \\
+$V$ & $\mathbb{N}_{16} \rightarrow \langle \mathbb{N}_8^{32}, \mathbb{N}_{16} \rangle$ & any & Entry points for verification functions using AluVM libs \\
+\bottomrule
+\end{tabular}
+\end{table}
+\begin{multicols}{2}
+
+
 \subsection{Contract State}
 
 A \emph{local contract state} is fully defined by a set of its operations, $\mathcal{O}$.
@@ -693,19 +775,19 @@ This state is not human-readable and must be processed using specific ABIs and i
 to be read by humans; however, this part is outside the consensus definition, belonging
 to the RGB standard library, defined in the RGB-1010 standard \cite{RGB1010}.
 
-Contract memory is a tuple $\langle \mathcal{D}, \mathcal{I} \rangle$,
+Local contract state is a tuple $\langle \mathcal{D}, \mathcal{I} \rangle$,
 consisting of destructible $\mathcal{D}$ and immutable $\mathcal{I}$ memory cells,
 as described in Section \ref{Memory}.
 
-\begin{itemize}
-\item The destructible memory cells represent a \gls{read-once memory} (R1M),
+\begin{description}
+\item[Destructible state] is represented by the \gls{read-once memory} (R1M),
   which is defined by contract operations with destructible outputs
   and is removed once accessed by any of the contract operations referencing it as one of its inputs.
 
-\item The immutable memory cells represent a \emph{write-once multiple-access} memory (W1M),
+\item[Immutable state] is represented by the \emph{write-once multiple-access} memory (W1M),
   which is defined by contract operations immutable outputs
   and accessed by contract operations immutable inputs.
-\end{itemize}
+\end{description}
 
 The state of the memory is defined as a result of executing the
 $\mathsf{evaluate}: \mathcal{O} \rightarrow \langle \mathcal{D}, \mathcal{I} \rangle$ procedure,
@@ -714,28 +796,24 @@ as described in Section \ref{Evaluate}.
 \subsection{Contract Operation}\label{Operation}
 
 Contract operation is a tuple
-\begin{equation}
-o_i \triangleq \langle \mathsf{c}_i, S_i, u_i \rangle
+\begin{equation}\label{eq:op}
+o_i \triangleq \big\langle \mathsf{c}_i, \mathcal{S}_i, \{ \varnothing, w_i \} \big\rangle
 \end{equation}
 \noindent
 consisting of:
 \noindent
 \begin{itemize}
 \item client-side information of contract state change, represented by a tuple $\mathsf{c}_i$;
-\item an unordered map of seal definitions performed by an operation,
-  $S_i(x): y_x \in \mathcal{Y_i} \rightarrow s_x$, where $s_x$ is a seal definition;
-\item a seal closing witness information,
-  which values must belong to a set of either unit value, or a specific witness $w_i$:
-  $u_i \in \{ \varnothing, w_i \}$.
+\item an unordered map of single-use seal definitions performed by an operation,
+\noindent
+\begin{equation}\label{eq:seals}
+  \mathcal{S}(x): \{ y_x \in \mathcal{Y} \rightarrow s_x \}
+  \end{equation}
+\noindent
+where $s_x$ is a seal definition;
+\item a seal close witness,
+  which values must belong to a set of either unit value, or a specific witness $w_i$.
 \end{itemize}
-
-A client-side part of the operation is represented by a tuple
-\noindent
-\begin{equation}
-\mathsf{c}_i \triangleq \langle v, \mathsf{C_Id}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
-\end{equation}
-\noindent
-which meaning is given in the table \ref{tab:op}.
 
 \end{multicols}
 \begin{table}[h]
@@ -746,9 +824,9 @@ which meaning is given in the table \ref{tab:op}.
 Symbol & Type & Meaning \\
 \midrule
 $v$ & $\mathbb{N}_8$ & RGB consensus version (must be set to $0$) \\
-$\mathsf{C_Id}$ & $\mathbb{N}_8^{32}$ & Contract id \\
-$\phi$ & $\mathbb{N}_{16}$ & Call id \\
-$\lambda$ & $\mathbb{N}_{16}$ & Nonce \\
+$\mathsf{C_{Id}}$ & $\mathbb{N}_8^{32}$ & Contract id \\
+$\phi$ & $\mathbb{N}_{16}$ & Call id: an index verification entry point $V$ from codex $k$ used to verify the transition \\
+$\lambda$ & $\mathbb{N}_{16}$ & Nonce (used for creating vanity contract ids) \\
 $\Upsilon$ & $\mathbb{V}$ & Operation-level witness data (unrelated to single-use seal witness!) \\
 $\mathcal{A}$ & $\{\mathbb{A} \times \mathbb{V}\}_\preceq^{[0, 2^{16})}$ & Destructible memory refs (input) \\
 $\mathcal{B}$ & $\{\mathbb{A}\}_\preceq^{[0, 2^{16})}$ & Immutable memory refs (input) \\
@@ -759,16 +837,80 @@ $\mathcal{Z}$ & $\{\mathbb{I}\}_\preceq^{[0, 2^{16})}$ & Immutable memory declar
 \end{table}
 \begin{multicols}{2}
 
+\subsubsection{Client-side Operation}
+
+A client-side part of the operation is represented by a tuple
+\noindent
+\begin{equation}
+\mathsf{c}_i \triangleq \langle v, \mathsf{C_{Id}}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
+\end{equation}
+\noindent
+which meaning is given in the table \ref{tab:op}.
+
+\subsubsection{Genesis Operation}
+
 The contract \emph{genesis} is a special type of operation, which contains no input:
 \noindent
 \begin{equation}
 \mathsf{c}_0 \triangleq \langle \pi, \mathsf{k_{Id}}, \phi, \lambda, \Upsilon, \varnothing, \varnothing, \mathcal{Y}, \mathcal{Z} \rangle
 \end{equation}
 
+\subsubsection{Operation Id}
+
 Each operation is identified by an operation id, $\mathsf{Id}(c_i)$, which is computed by
 hashing serialized data for the client-side part of the operation,
 as described in Section \ref{Commitments}. For genesis, the value of $\mathsf{k_{Id}}$
 is replaced by the value of $\mathsf{C_{Id}}$ before the id of the operation is calculated.
+
+
+\subsection{Single-use Seal Protocol}\label{SUS}
+
+The concept of single-use seals was developed as a result of Peter Todd work on cryptographic commitments,
+consensus protocols in distributed systems and client-side validation \cite{SUS1, SUS2, SUS3, SUS4}.
+The protocol for single-use seals is defined in the LNPBP-8 standard \cite{LNPBP8}.
+
+In short, a single-use seal is an abstract mechanism to guarantee a singular even in the future,
+which can be used, for instance, to prevent double-spends.
+The single-use seal is a commitment to commit to some message that is not known
+at the time the single-use seal was originally defined.
+Analogous to the real-world, physical, single-use-seals used to secure shipping containers,
+a single-use-seal primitive is a unique object that can be closed over a message exactly once.
+
+A single-use seal supports two fundamental operations:
+\begin{enumerate}
+    \item $\mathsf{close}(u,m) \rightarrow w$: close a seal $u$ over a message $m$, producing a witness $w$.
+    Closing fulfills the original commitment, specified in the seal definition.
+    \item $\mathsf{verify}(u,w,m) \rightarrow \mathbb{B}$: 
+    given witness $w$ verify that the seal $u$ was closed over message $m$.
+\end{enumerate}
+
+A single-use seal protocol is secure if it is impossible for an attacker
+to cause the \textsf{verify} function to return \textsf{true}
+for two distinct messages $m_1$, $m_2$, when applied to the same seal
+(although it is acceptable to have multiple witnesses for the same seal / message pair).
+
+RGB contracts use a specific form of the single-use seal protocol, 
+defined by the \emph{layer 1} value (see Table \ref{tab:layer1})
+in the contract metadata within the issue structure (\ref{eq:issue}).
+For instance, Bitcoin- and Liquid-based contracts will use TxO-based seals,
+described in Section \ref{Seals}.
+
+Each RGB operation, including genesis, contains a set of single-use seal definitions $\mathcal{S}$,
+created by that operation (\ref{eq:op}). 
+These seal definitions must match 1-to-1 with the destructible state $\mathcal{Y}$,
+defined in that operation, as specified in (\ref{eq:seals}).
+A pair of the destructible state, defined by an operation, and related single-use seal
+is called an \emph{assignment}: the state is assigned to the seal.
+These pairs constitute what is called \emph{owned state} of the local contract.
+
+When an operation $o_{i+1}$ references a previous operation $o_i$ output,
+which defines destructible state, it must provide a valid witness $w_i+1$
+of the single-use seals related to that state being closed
+over the $\mathsf{Id}(o_{i_i})$ of the spending operation;
+otherwise the operation is considered invalid.
+This provides the mechanism by which RGB prevents double-spending
+and guarantees that the destructible state is accessed only by the parties
+having the rights to access it (\emph{capability}).
 
 \subsection{Set of Operations}
 
@@ -814,7 +956,7 @@ contract operations:
 \mathsf{evaluate} \triangleq \forall o_i \in O: \\
 (\forall \ a \in \mathcal{A}_i \ \exists! \ d \in \mathcal{D}_i: \mathsf{addr}(d) = a) \\
 \wedge \ (\forall \ b \in \mathcal{B}_i \ \exists! \ e \in \mathcal{I}_i: \mathsf{addr}(e) = b) \\
-\wedge \ \mathsf{verify}(w_i, \mathcal{Y}_i) \\
+\wedge \ \mathsf{verify}(\mathcal{A}_i, w_i, \mathsf{Id}(o_i)) \\
 \wedge \ \mathsf{exec}(\mathsf{k}, \wp, \mathcal{I}_i, \mathcal{D}_i, c_i) \\
 \Rightarrow 
 \begin{cases}
@@ -828,7 +970,7 @@ contract operations:
 The $\mathsf{addr}$ procedure returns a memory address for a given memory cell.
 
 The procedure $\mathsf{verify}$ performs the verification of a set of single-use seals and a witness
-according to the LNPBP-8 standard \cite{LNPBP8}.
+according to the LNPBP-8 standard \cite{LNPBP8} as described in Section \ref{SUS}.
 
 The $\mathsf{exec}$ procedure executes a verification program
 and programs verifying fulfillment of individual lock conditions for the spent inputs,
@@ -868,42 +1010,137 @@ compact profs of inclusion. The complete structure of data serialization to prod
 including tagged prefixes and details of merklization, is given in the Annex \ref{AnnexB}.
 
 
-\section{Additional Information}
-\subsection{RGB on Bitcoin}
+\section{RGB on Bitcoin}
 
-When RGB is used on top of Bitcoin, the following parameters apply:
+When RGB is used on top of Bitcoin \cite{Bitcoin}, or bitcoin-compatible sidechains (such as Liquid, \cite{Liquid}),
+the following parameters apply:
 
 \begin{enumerate}
 \item A \emph{contract issue} must reference the specific bitcoin blockchain \& network as a value for its
 field $\mathsf{m}_2$ (\emph{layer 1} in contract metadata) using Table \ref{tab:layer1}.
-\item TxO-based single-use seals must be used, as they are defined in the LNPBP-10 standard \cite{LNPBP10}.
+\item TxO-based single-use seals must be used (Section \ref{Seals}),
+  with Bitcoin transaction outputs serving as a seal definitions,
+  and Bitcoin transaction, spending such an output, being a single-use seal closing witness
+  (see \cite{LNPBP8} for the definitions of these terms);
+\item Multi-message bundles (Section \ref{MMB})
+  and multi-protocol commitment schemes (Section \ref{MPC}) must be used for packing
+  multiple operations under same contract and multiple contracts
+  into a single \gls{seal close witness} Bitcoin transaction.
 \end{enumerate}
 
-\begin{coltable}
-\captionof{table}{Values for different Layer 1 used as a part of RGB contract metadata}\label{tab:layer1}
-\begin{tabular}{r l}
-\toprule
-$\mathsf{m}_2$ value & Layer 1 \\
-\midrule
-$0$ & No layer 1 is used \\
-$16$ & Bitcoin blockchain \\
-$17$ & Liquid sidechain \\
-$32$ & Prime \\
-\bottomrule
-\end{tabular}
-\end{coltable}
+\subsection{TxO-based seals}\label{Seals}
+
+The TxO-based Bitcoin single-use seals are defined in the LNPBP-10 standard \cite{LNPBP10}.
+
+Briefly, single-use seals are defined as tuples
+\noindent
+\begin{equation}
+    \mathbb{U} \triangleq \{ \mathbb{N}_8^{32}, \varnothing \} \times \mathbb{N}_{32} \times \{ \mathbb{N}_8^{40}, \mathbb{N}_8^{32} \times \mathbb{N}_{32} \} \\
+\end{equation}
+\begin{multline}
+    \mathsf{u} \triangleq \big\langle \{\xi|_{\mathsf{wout}=0}, \langle \zeta, \xi\rangle|_{=1} \}, \\
+        \{\nu|_{\mathsf{noise}=0}, \langle \zeta^\prime, \xi^\prime\rangle|_{\mathsf{failback}=1} \} \big\rangle \in \mathbb{U}
+\end{multline}
+
+The definition consist of two components:
+\begin{description}
+    \item[Primary definition] a Bitcoin transaction output, specified either
+        as an output index $\xi \in \mathbb{N}_{32}$ inside a seal witness transaction
+        for some previously-defined seals (\textsf{wout} variant),
+        or as a full outpoint, consisting of transaction id and output number
+        $\langle \zeta, \xi\rangle$.
+    \item[Secondary definition] either a noise data, concealing 
+\end{description}
+
+Wout
+
+Noise data
+
+Failback seals
+
+Seal closing
+
+The first bitcoin transaction output, which is either OP\_RETURN or P2TR output,
+must contain a deterministic bitcoin commitment to the multi-protocol commitment,
+defined in Section \ref{MMB} below.
+
+\subsection{Deterministic bitcoin commitments}\label{DBC}
+
+\cite{LNPBP6}.
+
+\subsubsection{Opret commitments}\label{Opret}
+
+\subsubsection{Tapret commitments}\label{Tapret}
+
+\cite{LNPBP12}
+
+\subsection{Multi-message bundles}\label{MMB}
+
+Multi-message bundles allow multiple independent messages
+to be packed as a single commitment under a single RGB contract.
+
+This is achieved by creating an ordered map $\mathcal{T}$ of
+bitcoin seal closing witness transaction input numbers $i$
+to corresponding operation ids $\{ \mathsf{Id}(o) \}$ under the contract:
+\noindent
+\begin{equation}
+    \mathcal{T} \triangleq \{ i \in \mathbb{N}_{32} \rightarrow \mathsf{Id}(o) \}^{[0, 2^{32})}
+\end{equation}
+
+The map is encoded into the used hash function to produce
+$\mathbb{N}_{256}$ commitment value $\beta$,
+which is used later in multi-protocol commitments (see Section \ref{MPC} below).
+
+Multi-message bundle commitment scheme is specified in LNPBP-11 standard \cite{LNPBP11}.
+
+\subsection{Multi-protocol commitments}\label{MPC}
+
+Since a single Bitcoin transaction outputs may be assigned RGB contract state
+under multiple seal definitions, and under multiple RGB contracts,
+a single Bitcoin transaction spending that output will serve as 
+\gls{seal close witness} to multiple seals.
+Thus, a special protocol is required to pack the individual seal close witnesses
+into a single deterministic bitcoin commitment.
+We use multi-protocol commitment scryptographic scheme, defined in the LNPBP-4
+standard \cite{LNPBP4}.
+
+The standard defines a way to commit to a multiple independent messages
+with a single digest such that the fact of each particular commitment,
+and a protocol under which the commitment is made may be proven without
+exposing the information about the other messages and used protocols.
+
+Multiple $\beta \in \mathbb{N}_{256}$ hashes of the multi-message bundle under
+RGB contracts are put into a map
+\noindent
+\begin{equation}
+\mathcal{M}: \{ \mathsf{C_{Id}} \rightarrow \beta \}^{[0, 2^{24})}
+\end{equation}
+\noindent
+identified with the corresponding contract ids $\mathsf{C_{Id}}$.
+
+An array of $\mathbb{N}_{256}$ items of size $2^s$ (up to $2^23$ elements) is allocated,
+a random \emph{cofactor} $\kappa$ value is picked from $\mathbb{N}_{16}$,
+and each individual $\beta$ value is put to position $\rho$ defined by
+\noindent
+\begin{equation}
+    \rho = \mathsf{C_{Id}} \mod \max(2^s - \kappa, 1)
+\end{equation}
+\noindent
+In case of a collision, a different $\kappa$ is picked,
+or/and the size $s$ is increased, and the operation repeats.
+The remaining array slots are filled with deterministically generated entropy values.
+
+The resulting array is merklized, and a markle path to the $\beta$ commitment,
+together with the contract id and merklization parameters, is used as a proof of
+inclusion and singularity of the commitment.
 
 
-\subsection{Security Assumptions}
+\section{RGB on Prime}
 
-The security of RGB consensus relies on the following two assumptions:
+Prime is a layer 1 designed specifically to match the requirements of the client-side validation systems;
+which has a much higher potential for scalability comparing to a traditiona blockchain approach \cite{Prime}.
 
-\begin{itemize}
-\item The selected cryptographic hash function is collision-resistant;
-\item The used single-use seal protocol is secure.
-\end{itemize}
-
-\subsection{Reference Implementation}
+\section{Reference Implementation}
 
 The reference implementation is provided in the repositories, and the libraries are listed
 in the consensus section of the RGB-3 standard \cite{RGB3}.
@@ -912,27 +1149,20 @@ in the consensus section of the RGB-3 standard \cite{RGB3}.
 The whole work was inspired by the earlier ideas of Peter Todd on the client-side validation \cite{CSV}
 and single-use seals \cite{SUS1, SUS2} protocols. Giacomo Zucco was the first, who had analyzed its possible
 applications and implications for Bitcoin blockchain and Lightning Network \cite{Zucco}.
-Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol.
-Olga Ukolova had provided a lot of feedback and comments during the protocol design phase.
+Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol and on its operations with Prime,
+as well as a failback seal mechanism.
+Olga Ukolova had provided a lot of feedback and idea discussions during the protocol design and implementation phase.
 
+This project was supported by donations to LNP/BP Labs from Fulgur Ventures, Hojo Foundation, Pandora Prime SA,
+Bitlight Labs, DIBA Inc, iFinex Inc and many individual contributors.
+The author is grateful to investors into Pandora Prime SA, as well as Pandora and Ultraviolet projects,
+who had allowed the research to be performed when no other funding sources were available.
 
-\bibliographystyle{plain}
-\begin{thebibliography}{9}
-\bibitem{Szabo} \textsc{Smart Contracts} \url{https://nakamotoinstitute.org/library/smart-contracts/}
-\bibitem{CSV} \textsc{Progress on Scaling via Client-Side Validation} \url{https://milan2016.scalingbitcoin.org/files/presentations/D2%20-%20A%20-%20Peter%20Todd.pdf}
-\bibitem{SUS1} \textsc{Preventing Consensus Fraud with Commitments and Single-Use-Seals} \url{https://petertodd.org/2016/commitments-and-single-use-seals}
-\bibitem{SUS2} \textsc{Building Blocks of the State Machine Approach to Consensus} \url{https://petertodd.org/2016/state-machine-consensus-building-blocks}
-\bibitem{Zucco} \textsc{Giacomo Zucco and RGB Tokens Built on Bitcoin} \url{https://bitcoinmagazine.com/culture/video-interview-giacomo-zucco-rgb-tokens-built-bitcoin}
-\bibitem{RGB3} \textsc{RGB-3 Standard}, \url{https://github.com/RGB-WG/RFC/blob/master/RGB-0003.md}
-\bibitem{RGB6} \textsc{RGB-6 Standard}, \url{https://github.com/RGB-WG/RFC/blob/master/RGB-0006.md}
-\bibitem{RGB1010} \textsc{RGB-1010 Standard}, \url{https://github.com/RGB-WG/RFC/blob/master/RGB-1010.md}
-\bibitem{LNPBP8} \textsc{LNPBP-8}, \url{https://github.com/LNP-BP/LNPBPs/blob/master/lnpbp-0008.md}
-\bibitem{LNPBP10} \textsc{LNPBP-10}, \url{https://github.com/LNP-BP/LNPBPs/blob/master/lnpbp-0010.md}
-\bibitem{setbuilder} \url{https://en.wikipedia.org/wiki/Set-builder_notation}
-\bibitem{strict} Strict Encoding, \url{https://docs.rs/strict_types}
-\bibitem{Cairo}: \url{https://cairo-lang.org}
-\bibitem{AluVM}: \url{https://docs.rs/aluvm}
-\end{thebibliography}
+The author is grateful to his wife, Orlovska Yassia, and family, who were very supportive during all six years
+of the work on the project.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
 
 \end{multicols}
 
@@ -982,12 +1212,12 @@ STOP	&16	&-  	&-		        &-                              &-	      	&       &$0$
 \toprule
 Op. code & Instr. byte & Extension half-byte & Src. Args. & Dst. Args.\footnotemark[1] & \textbf{CK} change & $\Delta\mathbf{CA}$ & Description \\
 \midrule
-TEST	&	64	&	$0000_b$	&	\textbf{E}	&	(\textbf{CO})	&		&$256000$	&Tests if register contains a value and set \textbf{CO} accordingly.	\\ \midrule
-CLR 	&	64	&	$0001_b$	&		&	\textbf{E}	&		&$256000$	&Clear destination register value.	\\ \midrule
-PUTD	&	64	&	$0010_b$	&	$f \in \mathbb{F}_q$	&	\textbf{E}	&		&$768000$	&Put a value to the destination register.	\\ \midrule
-PUTZ	&	64	&	$0011_b$	&		&	\textbf{E}	&		&$256000$	&Put zero value to the destination register.	\\ \midrule
-PUTV	&	64	&	$0100_b | \mathsf{const}$	&		&	\textbf{E}	&		&$264000$	&Put predefined constant value to the destination register. The pre-defined constant is a $\mathbb{N}_2$ number, which values represent $1$, $2^{64}$, $2^{128}$ and $q$ (the order of the finite field taken from \textbf{FQ}).	\\ \midrule
-FITS	&	64	&	$1000_b | \mathsf{bits}$	&	\textbf{E}	&	(\textbf{CO})	&	may fail	&$264000$	&Test whether a value in a source register fits in the provided number of bits. Sets \textbf{CO} register to the results of the test. The \textsf{bits} value is a $\mathbb{N}_3$ number representing the maximal number of lowest bits which may be set. If the source register does not contains a value, sets both \textbf{CO} and  \textbf{CK} to failed state, otherwise leaves the value in  \textbf{CK} unchanged.	\\ \midrule
+TEST	&	64	&	$0000_2$	&	\textbf{E}	&	(\textbf{CO})	&		&$256000$	&Tests if register contains a value and set \textbf{CO} accordingly.	\\ \midrule
+CLR 	&	64	&	$0001_2$	&		&	\textbf{E}	&		&$256000$	&Clear destination register value.	\\ \midrule
+PUTD	&	64	&	$0010_2$	&	$f \in \mathbb{F}_q$	&	\textbf{E}	&		&$768000$	&Put a value to the destination register.	\\ \midrule
+PUTZ	&	64	&	$0011_2$	&		&	\textbf{E}	&		&$256000$	&Put zero value to the destination register.	\\ \midrule
+PUTV	&	64	&	$0100_2 | \mathsf{const}$	&		&	\textbf{E}	&		&$264000$	&Put predefined constant value to the destination register. The pre-defined constant is a $\mathbb{N}_2$ number, which values represent $1$, $2^{64}$, $2^{128}$ and $q$ (the order of the finite field taken from \textbf{FQ}).	\\ \midrule
+FITS	&	64	&	$1000_2 | \mathsf{bits}$	&	\textbf{E}	&	(\textbf{CO})	&	may fail	&$264000$	&Test whether a value in a source register fits in the provided number of bits. Sets \textbf{CO} register to the results of the test. The \textsf{bits} value is a $\mathbb{N}_3$ number representing the maximal number of lowest bits which may be set. If the source register does not contains a value, sets both \textbf{CO} and  \textbf{CK} to failed state, otherwise leaves the value in  \textbf{CK} unchanged.	\\ \midrule
 MOV	&	65	&	-	&	\textbf{E}	&	\textbf{E}, (\textbf{CO})	&		&$512000$	&Move (copy) value from the source to the destination register, overwriting the previous value in the destination. If the source has no value, the destination value is also cleared. Operation leaves the value in the source register unaffected, and does not change the values in \textbf{CO} and \textbf{CK} registers.	\\ \midrule
 EQ	&	66	&	-	&	\textbf{E}, \textbf{E}	&	(\textbf{CO})	&	may fail	&$512000$	&Set \textbf{CO} to the result of register equivalence test. If both registers do not contain a value, set \textbf{CK} to failed state.	\\ \midrule
 NEG	&	67	&	-	&	\textbf{E}	&	\textbf{E}	&	may fail	&$512000$	&Take the value from the source register, negate using finite-field modulo arithmetics, and put the result into the destination register. If the source register has no value \textbf{CK} is set to failed state.	\\ \midrule
@@ -999,13 +1229,9 @@ MUL	&	69	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&$768000$	&Multipl
 
 \footnotetext[1]{Implicit args are given in parenthesis}
 
-The \textbf{GFA256} ISA defines \textbf{FQ} constant (read-only) register,
-which contains the order $q$ of the used finite field $\mathbb{F}_q$; and 
-16 general registers to store finite field element values,
-from \textbf{E1} to \textbf{E8}, and from \textbf{EA} to \textbf{EH}.
-All registers are equivalent in their functionality and are represented as \textbf{E} in the table above.
+\textbf{E} represents any of \textbf{E1-E8} and \textbf{EA-EH} general-purpose registers.
 
-The valuew of the explicit arguments are encoded after the instruction byte and half-bit, as a bit stream.
+The value of the explicit arguments are encoded after the instruction byte and half-bit, as a bit stream.
 \textbf{E} registers are represented as $\mathbb{N}_4$ numbers, starting from \textbf{E1}.
 
 \newpage
