@@ -335,7 +335,7 @@ The architecture uses a virtual machine zk-AluVM, immutable memory cells of two 
 
 AluVM \cite{AluVM} is a modular framework for developing RISC instruction set architectures and registry-based
 virtual machines, based on category theory. RGB uses zk-AluVM version of it, 
-which comes with \textbf{GFA256} instruction set architecture, supporting arithmetic operations with
+which comes with \textbf{GFA256} instruction set architecture, which supports arithmetic operations with
 finite field elements (see Table \ref{tab:gfa256}). It is extended by \textbf{USONIC} instructions
 for accessing operation data and memory (see Table \ref{tab:usonic}).
 The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
@@ -429,7 +429,8 @@ an \gls{authentication token} $\alpha$, and an optional \gls{locking condition} 
 \end{gather}
 
 A locking condition, when present as $\langle \xi, \ell \rangle \in \mathcal{L} \setminus \{ \varnothing \}$,
-consists of an auxiliary data $\xi$ and an optional verification script entry point $\ell$.
+consists of an auxiliary data $\xi$ and an optional entry point in a verification program $\ell$
+(for the definition of $\mathbb{E}$ please refer to (\ref{eq:e})).
 
 The auxiliary data may be used by the codex verifier script or the custom locking script $\ell$
 to check the satisfaction of the lock conditions with an input-specific witness,
@@ -492,8 +493,9 @@ Three of these registers influence the halting conditions of the machine:
 \item[CA] Complexity accumulator / counter.
         Each instruction has a computational complexity measure.
         This register sums up the complexity of the instructions executed.
-\item[CL] Complexity limit. If this register has a value set, once \textbf{CA} reaches or exceeds its value,
-        the VM will set \textbf{CK} to a failed state.
+\item[CL] Complexity limit. If this register has a value, once \textbf{CA} reaches or exceeds it,
+        the VM will set \textbf{CK} in a failed state.
+\item[CS] Call stack, limited to $256$ elements.
 \end{description}
 
 The program halts on the following conditions:
@@ -506,6 +508,8 @@ The program halts on the following conditions:
    \emph{if} the \textbf{CH} is set;
 \item On a jump to an unknown location
    (unknown library id or an offset outside the bounds of the library code segment);
+\item If number of nested calls, using \textbf{CS} exceeds $2^16$
+   (call stack overflow);
 \item Once the complexity limit given in \textbf{CL} is exceeded,
    \emph{if} the \textbf{CL} register contains a value, and \textbf{CH} is set.
 \end{enumerate}
@@ -523,12 +527,18 @@ and fed to a zk-STARK prover. Specific details of the encoding and selection of 
 are beyond the scope of this document and are a subject of future work.
 
 To run a program, AluVM must be provided with an unordered set of known \emph{libraries},
-used by the program, and an \emph{entry point} 
-$\mathsf{h} \triangleq \langle \mathsf{Id_{lib}} \in \mathbb{N}^{32}_8, p \in \mathbb{N}_{16} \rangle$,
+used by the program, and an \emph{entry point}
+\noindent
+\begin{gather}\label{eq:e}
+\mathbb{E} \triangleq \mathbb{N}^{32}_8 \times \mathbb{N}_{16} \\
+\mathsf{h} \triangleq \langle \mathsf{Id_{lib}}, p \rangle \in \mathbb{E}
+\end{gather}
+\noindent
 consisting of a library id $\mathsf{Id_{lib}}$ and an offset $p$ in the library code segment.
-The number of known libraries is unbounded; therefore, the complexity limit mechanism
-is the only way to bound the computation of a program.
-For information about the AluVM library, its structure, constraints, etc. please refer to the
+
+The number of known libraries is unbounded; therefore, the complexity limit and the call stack size
+are the only bounding conditions for a program.
+For information about the AluVM library, its structure, constraints, etc. one may refer to the
 documentation \cite{AluVM}.
 
 \section{Contracts}
@@ -701,7 +711,6 @@ The state of the memory is defined as a result of executing the
 $\mathsf{evaluate}: \mathcal{O} \rightarrow \langle \mathcal{D}, \mathcal{I} \rangle$ procedure,
 as described in Section \ref{Evaluate}.
 
-\columnbreak
 \subsection{Contract Operation}\label{Operation}
 
 Contract operation is a tuple
@@ -719,6 +728,14 @@ consisting of:
   which values must belong to a set of either unit value, or a specific witness $w_i$:
   $u_i \in \{ \varnothing, w_i \}$.
 \end{itemize}
+
+A client-side part of the operation is represented by a tuple
+\noindent
+\begin{equation}
+\mathsf{c}_i \triangleq \langle v, \mathsf{C_Id}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
+\end{equation}
+\noindent
+which meaning is given in the table \ref{tab:op}.
 
 \end{multicols}
 \begin{table}[h]
@@ -741,14 +758,6 @@ $\mathcal{Z}$ & $\{\mathbb{I}\}_\preceq^{[0, 2^{16})}$ & Immutable memory declar
 \end{tabular}
 \end{table}
 \begin{multicols}{2}
-
-A client-side part of the operation is represented by a tuple
-\noindent
-\begin{equation}
-\mathsf{c}_i \triangleq \langle v, \mathsf{C_Id}, \phi, \lambda, \Upsilon, \mathcal{A}, \mathcal{B}, \mathcal{Y}, \mathcal{Z} \rangle
-\end{equation}
-\noindent
-which meaning is given in the table \ref{tab:op}.
 
 The contract \emph{genesis} is a special type of operation, which contains no input:
 \noindent
@@ -935,54 +944,60 @@ Olga Ukolova had provided a lot of feedback and comments during the protocol des
 \begin{table}[h]
 \centering
 \caption{AluVM Control Flow Instruction Set Architecture}\label{tab:aluvm}
-\begin{tabular}{l p{1cm} l p{1cm} p{1cm} p{1.5cm} p{1cm} p{1.5cm} p{5cm}}
+\begin{tabular}{l p{1cm} l p{1cm} p{1cm} p{1.5cm} p{1cm} r p{5cm}}
 \toprule
-Op. code & Instr. byte & Args & Src. & Dst. & \textbf{CK} change & \textbf{CY} change & \textbf{CS/CP} (call stack) & Description \\
+Op. code & Instr. byte & Args & Src. & Dst. & \textbf{CK} change & \textbf{CS} call stack & $\Delta\mathbf{CA}$ & Description \\
 \midrule
-NOP	    &0	&-  	&-      		&-                              &-	        &	  &		&Not an operation \\ \midrule
-NOCO	&1	&-  	&\textbf{CO}	&$\mathbf{CO}$	                &-	      	&	  &		&Inverts \textbf{CO} \\ \midrule
-CHCO	&2	&-  	&\textbf{CO}	&-                              &-	      	&	  &	    &Terminate if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
-CHCK	&3	&-  	&\textbf{CK}	&-                              &-	      	&	  &	    &Terminate if \textbf{CK} is in failed state \\ \midrule
-FAIL	&4	&-  	&-         		&-                              &\textsf{failed}		&	  &	    &Set \textbf{CK} to failed state, terminates if \textbf{CH} is set \\ \midrule
-RSET	&5	&-  	&\textbf{CK}	&$\mathbf{CO}, \mathbf{CK}$	    &-	      	&	  &		&Resets \textbf{CK}, sets \textbf{CO} to a previous \textbf{CK} value \\ \midrule
-JMP	    &6	&$p$	&-		        &-                              &may fail	&inc  &		&Jump to location (unconditionally) \\ \midrule
-JINE	&7	&$p$	&\textbf{CO}	&-                              &may fail	&inc  &		&Jump to location if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
-JIFAIL	&8	&$p$	&\textbf{CK}	&-                              &may fail	&inc  &		&Jump to location if \textbf{CK} is in failed state \\ \midrule
-SH      &9	&$r$	&-              &-                              &may fail	&inc  &		&Relative jump \\ \midrule
-SHNE	&10	&$r$	&\textbf{CO}	&-                              &may fail	&inc  &		&Relative jump if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
-SHFAIL	&11	&$r$	&\textbf{CK}	&-                              &may fail	&inc  &		&Relative jump if \textbf{CK} is in failed state \\ \midrule
-EXEC	&12	&$h$	&-		        &-                              &may fail	&inc  & 	&Jump outside library \\ \midrule
-FN  	&13	&$p$	&-		        &-                              &may fail	&     &inc  &Call inside library \\ \midrule
-CALL	&14	&$h$	&-		        &-                              &may fail	&     &inc	&Call outside library \\ \midrule
-RET 	&15	&-  	&-		        &-                              &-	      	&     &dec  &Return or finish program \\ \midrule
-STOP	&16	&-  	&-		        &-                              &-	      	&     &     &Unconditionally stop program \\
+NOP	    &0	&-  	&-      		&-                              &-	        &		&$0$      &Not an operation \\ \midrule
+NOCO	&1	&-  	&\textbf{CO}	&$\mathbf{CO}$	                &-	      	&		&$2000$   &Inverts \textbf{CO} \\ \midrule
+CHCO	&2	&-  	&\textbf{CO}	&-                              &-	      	&	    &$2000$   &Terminate if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
+CHCK	&3	&-  	&\textbf{CK}	&-                              &-	      	&	    &$2000$   &Terminate if \textbf{CK} is in failed state \\ \midrule
+FAIL	&4	&-  	&-         		&-                              &\textsf{failed} &	&$2000$   &Set \textbf{CK} to failed state, terminates if \textbf{CH} is set \\ \midrule
+RSET	&5	&-  	&\textbf{CK}	&$\mathbf{CO}, \mathbf{CK}$	    &-	      	&		&$2000$   &Resets \textbf{CK}, sets \textbf{CO} to a previous \textbf{CK} value \\ \midrule
+JMP	    &6	&$p$\footnotemark[1] &-	&-                              &may fail	&		&$10000$  &Jump to location (unconditionally) \\ \midrule
+JINE	&7	&$p$	&\textbf{CO}	&-                              &may fail	&		&$20000$  &Jump to location if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
+JIFAIL	&8	&$p$	&\textbf{CK}	&-                              &may fail	&		&$20000$  &Jump to location if \textbf{CK} is in failed state \\ \midrule
+SH      &9	&$r$\footnotemark[2] &- &-                              &may fail	&		&$10000$  &Relative jump \\ \midrule
+SHNE	&10	&$r$	&\textbf{CO}	&-                              &may fail	&		&$20000$  &Relative jump if $\mathbf{CO} \stackrel{?}{=} \mathsf{true}$ \\ \midrule
+SHFAIL	&11	&$r$	&\textbf{CK}	&-                              &may fail	&		&$20000$  &Relative jump if \textbf{CK} is in failed state \\ \midrule
+EXEC	&12	&$\mathsf{h} \in \mathbb{E}$ &-	&-                              &may fail	& 	    &$548000$ &Jump outside library \\ \midrule
+FN  	&13	&$p$	&-		        &-                              &may fail	&pushes &$30000$  &Call inside library \\ \midrule
+CALL	&14	&$\mathsf{h} \in \mathbb{E}$	&-		        &-                              &may fail	&pushes	&$548000$ &Call outside library \\ \midrule
+RET 	&15	&-  	&-		        &-                              &-	      	&pops   &$20000$  &Return or finish the program \\ \midrule
+STOP	&16	&-  	&-		        &-                              &-	      	&       &$0$      &Unconditionally stop the program \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\footnotetext[1]{absolute position as $\mathbb{N}_{16}$ in the library}
+\footnotetext[2]{relative offset as $\mathbb{Z}_8$ from the current position in the library}
+
 
 \newpage
 
 \begin{table}[h]
 \centering
 \caption{\textbf{GFA256} Instruction Set Architecture Extension for AluVM}\label{tab:gfa256}
-\begin{tabular}{l p{1cm} p{1cm} l l p{1.5cm} p{8cm}}
+\begin{tabular}{l p{1cm} p{1.4cm} p{1cm} p{1cm} p{1.5cm} r p{6cm}}
 \toprule
-Op. code & Instr. byte & Ext. half-byte & Src. & Dst. & \textbf{CK} change & Description \\
+Op. code & Instr. byte & Extension half-byte & Src. Args. & Dst. Args.\footnotemark[1] & \textbf{CK} change & $\Delta\mathbf{CA}$ & Description \\
 \midrule
-TEST	&	64	&	0	&	\textbf{E}	&	\textbf{CO}	&		&	Tests if register contains a value and set \textbf{CO} accordingly.	\\ \midrule
-CLR	&	64	&	1	&		&	\textbf{E}	&		&	Clear destination register value.	\\ \midrule
-PUTD	&	64	&	2	&	$f \in \mathbb{F}_q$	&	\textbf{E}	&		&	Put a value to the destination register	\\ \midrule
-PUTZ	&	64	&	3	&		&	\textbf{E}	&		&	Put zero value to the destination register	\\ \midrule
-PUTV	&	64	&	4	&	\textsf{const}	&	\textbf{E}	&		&	Put predefined constant value to the destination register. The pre-defined constants are $1$, $2^{64}$, $2^{128}$ and $q$ (the order of the finite field taken from \textbf{FQ})	\\ \midrule
-FITS	&	64	&	5	&	\textbf{E}, \textsf{bits}	&	\textbf{CO}	&	may fail	&	Test whether a value in a source register fits in the provided number of bits. Sets \textbf{CO} register to the results of the test. The \textsf{bits} value is an natural number representing the maximal number of lowest bits which may be set. If the source register does not contains a value, sets both \textbf{CO} and  \textbf{CK} to failed state, otherwise leaves the value in  \textbf{CK} unchanged.	\\ \midrule
-MOV	&	65	&	6	&	\textbf{E}	&	\textbf{E}, \textbf{CO}	&		&	Moves (copies) value from the source to the destination register, overwriting the previous value in the destination. If the source has no value, the destination value is also cleared. Operation leaves the value in the source register unaffected, and does not change the values in \textbf{CO} and \textbf{CK} registers.	\\ \midrule
-EQ	&	66	&	7	&	\textbf{E}, \textbf{E}	&	\textbf{CO}	&	may fail	&	Sets \textbf{CO} to the result of register equivalence test. If both registers do not contain a value, sets \textbf{CK} to failed state.	\\ \midrule
-NEG	&	67	&	-	&	\textbf{E}	&	\textbf{E}	&	may fail	&	Take the value from the source register, negate using finite-field modulo arithmetics, and put the result into the destination register. If the source register has no value \textbf{CK} is set to failed state.	\\ \midrule
-ADD	&	68	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&	Add values of two registers using finite-field arithmetics and put the result into the first of the register. Do not detect overflows. If either of the source register does not contain a value, sets \textbf{CK} fo failed state.	\\ \midrule
-MUL	&	69	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&	Multiply values of two registers using finite-field arithmetics and put the result into the first of the register. Do not detect overflows. If either of the source register does not contain a value, sets \textbf{CK} fo failed state.	\\
+TEST	&	64	&	$0000_b$	&	\textbf{E}	&	(\textbf{CO})	&		&$256000$	&Tests if register contains a value and set \textbf{CO} accordingly.	\\ \midrule
+CLR 	&	64	&	$0001_b$	&		&	\textbf{E}	&		&$256000$	&Clear destination register value.	\\ \midrule
+PUTD	&	64	&	$0010_b$	&	$f \in \mathbb{F}_q$	&	\textbf{E}	&		&$768000$	&Put a value to the destination register.	\\ \midrule
+PUTZ	&	64	&	$0011_b$	&		&	\textbf{E}	&		&$256000$	&Put zero value to the destination register.	\\ \midrule
+PUTV	&	64	&	$0100_b | \mathsf{const}$	&		&	\textbf{E}	&		&$264000$	&Put predefined constant value to the destination register. The pre-defined constant is a $\mathbb{N}_2$ number, which values represent $1$, $2^{64}$, $2^{128}$ and $q$ (the order of the finite field taken from \textbf{FQ}).	\\ \midrule
+FITS	&	64	&	$1000_b | \mathsf{bits}$	&	\textbf{E}	&	(\textbf{CO})	&	may fail	&$264000$	&Test whether a value in a source register fits in the provided number of bits. Sets \textbf{CO} register to the results of the test. The \textsf{bits} value is a $\mathbb{N}_3$ number representing the maximal number of lowest bits which may be set. If the source register does not contains a value, sets both \textbf{CO} and  \textbf{CK} to failed state, otherwise leaves the value in  \textbf{CK} unchanged.	\\ \midrule
+MOV	&	65	&	-	&	\textbf{E}	&	\textbf{E}, (\textbf{CO})	&		&$512000$	&Move (copy) value from the source to the destination register, overwriting the previous value in the destination. If the source has no value, the destination value is also cleared. Operation leaves the value in the source register unaffected, and does not change the values in \textbf{CO} and \textbf{CK} registers.	\\ \midrule
+EQ	&	66	&	-	&	\textbf{E}, \textbf{E}	&	(\textbf{CO})	&	may fail	&$512000$	&Set \textbf{CO} to the result of register equivalence test. If both registers do not contain a value, set \textbf{CK} to failed state.	\\ \midrule
+NEG	&	67	&	-	&	\textbf{E}	&	\textbf{E}	&	may fail	&$512000$	&Take the value from the source register, negate using finite-field modulo arithmetics, and put the result into the destination register. If the source register has no value \textbf{CK} is set to failed state.	\\ \midrule
+ADD	&	68	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&$512000$	&Add values of two registers using finite-field arithmetics and put the result into the first of the register. Do not detect overflows. If either of the source register does not contain a value, sets \textbf{CK} fo failed state.	\\ \midrule
+MUL	&	69	&	-	&	\textbf{E}, \textbf{E}	&	\textbf{E}	&	may fail	&$768000$	&Multiply values of two registers using finite-field arithmetics and put the result into the first of the register. Do not detect overflows. If either of the source register does not contain a value, sets \textbf{CK} fo failed state.	\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\footnotetext[1]{Implicit args are given in parenthesis}
 
 The \textbf{GFA256} ISA defines \textbf{FQ} constant (read-only) register,
 which contains the order $q$ of the used finite field $\mathbb{F}_q$; and 
@@ -990,12 +1005,15 @@ which contains the order $q$ of the used finite field $\mathbb{F}_q$; and
 from \textbf{E1} to \textbf{E8}, and from \textbf{EA} to \textbf{EH}.
 All registers are equivalent in their functionality and are represented as \textbf{E} in the table above.
 
+The valuew of the explicit arguments are encoded after the instruction byte and half-bit, as a bit stream.
+\textbf{E} registers are represented as $\mathbb{N}_4$ numbers, starting from \textbf{E1}.
+
 \newpage
 
 \begin{table}[h]
 \centering
 \caption{\textbf{USONIC} Instruction Set Architecture Extension for AluVM}\label{tab:usonic}
-\begin{tabular}{l p{1cm} l l p{7cm}}
+\begin{tabular}{l p{1cm} l p{1.5cm} p{9.3cm}}
 \toprule
 Op. code & Instr. byte & Src. & Dst. & Description \\
 \midrule
@@ -1004,16 +1022,16 @@ CKNXIAO	&129	&$\mathcal{B}, \mathbf{UI2}$	&\textbf{CO}	&Sets \textbf{CO} to the 
 CKNXORO	&130	&$\mathcal{Y}, \mathbf{UI3}$	&\textbf{CO}	&Sets \textbf{CO} to the result of check $\mathbf{UI3} < \| \mathcal{Y} \|$ \\ \midrule
 CKNXOAO	&131	&$\mathcal{Z}, \mathbf{UI4}$	&\textbf{CO}	&Sets \textbf{CO} to the result of check $\mathbf{UI4} < \| \mathcal{Z} \|$ \\ \midrule
 LDW	    &132	&$\Upsilon$	                    &              	&Load operation witness data (not the same as single-use seal witness!) to \textbf{EA-ED} registers. \\ \midrule
-LDIW	&133	&$\mathsf{d}_\varpi: \mathsf{addr}(\mathsf{d}_\sigma) = a_\mathbf{UI1}$	&	&Load a destructible input-specific witness for the current input number (determined by the value in \textbf{UI1}) to \textbf{EA-ED} registers. 
+LDIW	&133	&$\mathsf{d}_\varpi|_{\mathsf{addr} = a_\mathbf{UI1}}$	&	&Load a destructible input-specific witness for the current input number (determined by the value in \textbf{UI1}) to \textbf{EA-ED} registers. 
 The operation is idempotent and does not update the value of \textbf{UI1} register. It also sets \textbf{CO} to indicate whether the input matching \textbf{UI1} value is present. \\ \midrule
-LDIL	&134	&$\mathsf{d}_\varpi: \mathsf{addr}(\mathsf{d}_\xi) = a_\mathbf{UI1}$	&	&Load a destructible input-specific auxiliary locking conditions for the current input number (determined by the value to the \textbf{UI1}) to \textbf{EA-ED} registers. 
+LDIL	&134	&$\mathsf{d}_\varpi|_{\mathsf{addr} = a_\mathbf{UI1}}$	&	&Load a destructible input-specific auxiliary locking conditions for the current input number (determined by the value to the \textbf{UI1}) to \textbf{EA-ED} registers. 
 The operation is idempotent and does not update the value of \textbf{UI1} register. It also sets \textbf{CO} to indicate whether the input matching \textbf{UI1} value is present. \\ \midrule
 LDIT	&135	&$\alpha_\mathbf{UI1}$	        &\textbf{CO}	&Load a destructible input authorization token $\alpha$ for the current input number (determined by the value in \textbf{UI1}) to \textbf{EA}. The operation also sets \textbf{EB} to either $0$ (if a custom lock script is not present) or $1$, if it is present.
 The operation is idempotent and does not update the value of \textbf{UI1} register. It also sets \textbf{CO} to indicate whether the input matching \textbf{UI1} value is present. \\ \midrule
-LDIRO	&136	&$\mathsf{d}_\sigma: \mathsf{addr}(\mathsf{d}_\sigma) = \mathsf{a}_\mathbf{UI1}$	&\textbf{EA-ED, CO}	&Load the destructible memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
-LDIAO	&137	&$\mathsf{e}_\varsigma: \mathsf{addr}(\mathsf{e}_\varsigma) = \mathsf{b}_\mathbf{UI1}$	&\textbf{EA-ED, CO}	&Load the immutable memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
-LDORO	&138	&$\sigma(\mathsf{y}_\mathbf{UI2})$	&\textbf{EA-ED, CO}	&Load next destructible operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
-LDOAO	&139	&$\varsigma(\mathsf{z}_\mathbf{UI2})$	&\textbf{EA-ED, CO}	&Load next immutable operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDIRO	&136	&$\mathsf{d}_\sigma|_{\mathsf{addr} = \mathsf{a}_\mathbf{UI1}}$	&\textbf{EA-ED, CO}	&Load the destructible memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDIAO	&137	&$\mathsf{e}_\varsigma|_{\mathsf{addr} = \mathsf{b}_\mathbf{UI2}}$	&\textbf{EA-ED, CO}	&Load the immutable memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDORO	&138	&$\sigma(\mathsf{y}_\mathbf{UI3})$	&\textbf{EA-ED, CO}	&Load next destructible operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
+LDOAO	&139	&$\varsigma(\mathsf{z}_\mathbf{UI4})$	&\textbf{EA-ED, CO}	&Load next immutable operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
 RSTIRO	&140	&-	&\textbf{UI1}	&Resets iterator over the input descructible memory cells by setting \textbf{UI1} to zero. \\ \midrule
 RSTIAO	&141	&-	&\textbf{UI2}	&Resets iterator over the input immutable memory cells by setting \textbf{UI2} to zero. \\ \midrule
 RSTORO	&142	&-	&\textbf{UI3}	&Resets iterator over the output descructible memory cells by setting \textbf{UI3} to zero. \\ \midrule
@@ -1022,7 +1040,8 @@ RSTOAO	&143	&-	&\textbf{UI4}	&Resets iterator over the output immutable memory c
 \end{tabular}
 \end{table}
 
-All \textbf{USONIC} instructions do not take arguments. None of them changes the value in \textbf{CK}.
+The \textbf{USONIC} ISA extension defines four $\mathbb{N}_{16}$ registers, \textbf{UI1-UI4}, which acts as operation input iterators.
+All \textbf{USONIC} instructions do not take arguments and have zero complexity. None of them changes the value in \textbf{CK}.
 
 
 \newpage
