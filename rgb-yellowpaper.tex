@@ -109,6 +109,15 @@
   }
 \makeatother
 
+\def\bitcoin{%
+  \leavevmode
+  \vtop{\offinterlineskip %\bfseries
+    \setbox0=\hbox{B}%
+    \setbox2=\hbox to\wd0{\hfil\hskip-.03em
+    \vrule height .3ex width .15ex\hskip .08em
+    \vrule height .3ex width .15ex\hfil}
+    \vbox{\copy2\box0}\box2}}
+
 \newenvironment{coltable}
   {\par\bigskip\noindent\minipage{\columnwidth}\centering}
   {\endminipage\par\bigskip}
@@ -406,7 +415,7 @@ You can find more about RGB version numbering in the RGB-6 standard \cite{RGB6}.
 \end{figure}
 \begin{multicols}{2}
 
-\section{SONIC Architecture}
+\section{SONIC Architecture}\label{Sonic}
 
 Most modern computers use modified von Neumann \cite{vonNeumann},
 Harvard architecture, and modified Harvard architecture \cite{Harvard}.
@@ -440,14 +449,14 @@ with \textbf{GFA256} ISA for arithmetic operations
 with finite field elements (see Table \ref{tab:gfa256}).
 It is further extended by \textbf{USONIC} ISA
 for accessing operation data and memory (see Table \ref{tab:usonic}).
-The complete specification on the instruction set architecture is given in Annex \ref{AnnexA}.
+The complete specification on the instruction set architecture is given in Appendix \ref{AnnexA}.
 
 \subsubsection{Control Registers}\label{Registers}
 
 Control registers are a part of the base AluVM ISA.
 The are used for the program execution workflow and do not participate
 as explicit arguments for the instructions (however, their value may be accessed or changed
-by some of the instructions, as specified in Annex \ref{AnnexA}).
+by some of the instructions, as specified in Appendix \ref{AnnexA}).
 
 \begin{description}
 \item[CH] Halting register. When set to \texttt{true},
@@ -565,7 +574,7 @@ with the following modifications:
 The machine executes a single instruction at each step.
 The complete list of all instructions and their encodings,
 as well as information about registers (i.e., Instruction Set Architecture),
-is given in Annex \ref{AnnexA}.
+is given in Appendix \ref{AnnexA}.
 
 AluVM comes with a set of special-purpose control registers,
 described in the Section \ref{Registers}.
@@ -617,7 +626,7 @@ are the only bounding conditions for a program.
 For information about the AluVM library, its structure, constraints, etc., one may refer to the
 documentation \cite{AluVM}.
 
-\section{Contracts}
+\section{Contracts}\label{Contracts}
 
 The contract is an instance of the RGB protocol. RGB consensus operates on the contract level,
 and doesn't include (as of version I.0) any cross-contract functionality\footnote{%
@@ -1022,7 +1031,11 @@ specifically:
 Data are serialized into hashers, which usually use a prefix (tagged) to uniquely codify
 the type of the produced commitment. Collections may also be merklized, in order to allow
 compact profs of inclusion. The complete structure of data serialization to produce commitments,
-including tagged prefixes and details of merklization, is given in the Annex \ref{AnnexB}.
+including tagged prefixes and details of merklization, is given in the Appendix \ref{AnnexB}.
+
+RGB consensus version I.0 uses SHA-256 hash function.
+Future versions may introduce more hashing functions, including zk-friendly,
+via the use of feature flags in the contract metadata (field \#4, see Section \ref{Contracts}).
 
 
 \section{RGB on Bitcoin}
@@ -1119,8 +1132,7 @@ separate components:
     \begin{description}
     \item[MMB proof] the proof that each witness transaction input
         is used only in a single RGB operation (see Section \ref{MMB} below);
-    \item[Contract id]
-    \item[MPC proof] the inclusion proof of an MMB commitment under the contract id
+    \item[Contract id, MPC proof] the inclusion proof of an MMB commitment under the contract id
         into the deterministic bitcoin commitment (see Section \ref{MPC} below);
     \item[DBC proof] the deterministic bitcoin commitment proof that the witness transaction
         includes a valid commitment (see Section \ref{DBC} below), provided only
@@ -1150,9 +1162,9 @@ Opret commitments are done by putting the following Bitcoin script into the \tex
 of the output:
 \noindent
 \begin{equation}
-    \mathtt{OP\_RETURN OP\_PUSH32 <MPC\_COMMITMENT>}
+    \mathtt{OP\_RETURN\ OP\_PUSH32\ <MPC\_COMMITMENT>}
 \end{equation}
-where \texttt{OP\_RETURN} is a byte with value $6A_{16}$,
+where \texttt{OP\_RETURN} is a byte with value $\mathrm{6a}_{16}$,
 \texttt{OP\_PUSH32} is a byte with value $20_{16}$,
 \texttt{<MPC\_COMMITMENT>} is a 32-byte little-endian binary data of the MPC commitment
 (see Section \ref{MPC})).
@@ -1184,15 +1196,15 @@ however, for all descriptor types only three options are possible:
 \noindent
 \begin{enumerate}
 \item when no script tree is present,
-    the constructed tapleaf script becomes the only leaf in the Script Tree,
+    the constructed tapleaf script becomes the only leaf in the Script Tree;
 \item when a script tree contains a single leaf, it is shifted one level below,
-    and is put next to the constructed tapleaf scrept, containing the commitment.
+    and is put next to the constructed tapleaf scrept, containing the commitment;
 \item when a script tree contains multiple leaf, they all shifted one level below,
     such that the root of the tree becomes a sibling to the constructed tapleaf script.
 \end{enumerate}
 \noindent
 The resulting tree is used in constructing \textsf{scriptPubey}
-according to the procedure described in \cite{ref:BIP341}.
+according to the procedure described in \cite{BIP341}.
 
 The tapret DBC proof, included in the anchor structure (see Section \ref{Witness})
 consists of the internal public key, used by the output \cite{BIP341},
@@ -1201,7 +1213,7 @@ This information proofs that the right-side partner of the Taproot script tree o
 does not contain an alternative \textttt{OP\_RETURN} commitment script.
 In the case (1) this information is skipped (since there is no other leaves than the commitment);
 and in cases (2) and (3) depends on the lexicographic ordering
-of tapnode hashes \cite{BIP341} for both of the nodes on the layer 1.
+of tapnode hashes \cite{BIP341} for both of the nodes on the layer~1.
 If the leaf tapscript with the commitment precedes the other node,
 only the tapnode hash of the other node is provided;
 otherwise, in case (2) the whole leaf script of the other node must be given,
@@ -1230,7 +1242,7 @@ which is used later in multi-protocol commitments (see Section \ref{MPC} below).
 
 Multi-message bundle commitment scheme is specified in LNPBP-11 standard \cite{LNPBP11}.
 
-\subsection{Multi-protocol commitments}\label{MPC}
+\subsection{Multi-protocol Commitments}\label{MPC}
 
 Since a single Bitcoin transaction outputs may be assigned RGB contract state
 under multiple seal definitions, and under multiple RGB contracts,
@@ -1276,20 +1288,28 @@ inclusion and singularity of the commitment
 \section{RGB on Prime}
 
 Prime is a layer 1 designed specifically to match
-the requirements of the client-side validation systems;
+the requirements of the client-side validation systems \cite{Prime};
 which has a much higher potential for scalability
-comparing to a traditiona blockchain approach \cite{Prime}.
-Use of Prism also allows to avoid all the complexities associated
+comparing to a traditional blockchain approach \cite{Prime}.
+Use of Prime also allows to avoid all the complexities associated
 with the Bitcoin TxO seals construct (Section \ref{Seals}).
 
-.............................................
+The complete formal specification of the RGB on Prime (RGB$^\prime$, for short)
+is outside of the scope of the current paper and will be part of the future work.
+For now, we will briefly define the main differences from RGB on Bitcoin (RG\bitcoin, for short)
+
+The seal definition for RGB$^\prime$ is a randomly picked element of $\mathbb{F}_q$.
+The seal close witness consists of a Prime header \cite{Prime} (published part),
+and a merkle path proving the inclusion of the RGB operation id into the header (client-side part).
+RGB$^\prime$ does not require use of multi-protocol commitments or multi-message bundles,
+as required in RG\bitcoin.
 
 \section{Reference Implementation}
 
 The reference implementation is provided in the repositories, and the libraries are listed
 in the consensus section of the RGB-3 standard \cite{RGB3}.
+It is provided in full in Appendix \ref{AnnexC}.
 
-.............................................
 
 \section{Acknowledgments}
 The whole work was inspired by the earlier ideas of Peter Todd
@@ -1424,7 +1444,79 @@ All \textbf{USONIC} instructions do not take arguments and have zero complexity.
 % Appendix II content here
 
 \newpage
-\section{}\label{AnnexC}
+\section{RGB Consensus Reference Implementation}\label{AnnexC}
+
+In the lists below, the top level contains a reference to a repository,
+and the layers underneath describe specific Rust crates with library and binary targets.
+If the crates are not listed, then the repository contains a single crate named after it.
+
+\subsection{Client-side validation library}
+
+\url{https://github.com/LNP-BP/client_side_validation}
+
+Provides core cryptographic primitives for client-side validation (not specific to RGB or Bitcoin).
+
+\begin{description}
+   \item[\texttt{commit\_verify}] implementation of tagged hashing, merklization,
+   commitment creation workflows, multi-protocol commitments and multi-message bundles.
+   \item[\texttt{commit\_encoding\_derive}]
+   derivation macros for applying commitment workflows to data structures.
+   \item[\texttt{single\_use\_seals}]
+   single-use seal APIs.
+   \item[\texttt{client\_side\_validation}]
+   umbrella library combining the above.
+\end{description}
+
+\subsection{Strict Encoding}
+
+\url{https://github.com/strict-types/strict_encoding}
+
+Consensus data serialization procedures.
+
+\begin{description}
+    \item[\texttt{strict\_encoding}] serialization implementation.
+    \item[\texttt{strict\_encoding\_derive}] derivation procedural macros.
+\end{description}
+
+\subsection{zk-AluVM}
+
+\url{https://github.com/AluVM/aluvm} and \url{https://github.com/AluVM/zk-aluvm}
+
+Virtual machine for RGB (see Section \ref{AluVM})
+
+\begin{description}
+    \item[\texttt{aluvm}] framework for building virtual machines.
+    \item[\texttt{zk-aluvm}] zk-compatible RISC virtual machine.
+\end{description}
+
+\subsection{UltraSONIC}
+
+\url{https://github.com/AluVM/ultrasonic}
+
+Consensus-level part of the polynomial computer based on zk-AluVM (see Section \ref{Sonic}).
+
+\subsection{BP Core Library}
+
+\url{https://github.com/BP-WG/bp-core}
+
+Implementation of Bitcoin TxO-based single-use seals and commitment schemes.
+
+\begin{description}
+    \item[\texttt{bp-consensus}]  Bitcoin blockchain consensus-level primitives,
+    \item[\texttt{bp-dbc}] deterministic bitcoin commitments (opret, tapret),
+    \item[\texttt{bp-seals}] bitcoin-specific single-use seals code,
+    \item[\texttt{bp-core}] umbrella library combining all of the above.
+\end{description}
+
+\subsection{RGB Core Library}
+
+\url{https://github.com/RGB-WG/rgb-core}
+
+RGB I.0 consensus implementation orchestrating operations of the above libraries.
+
+
+\newpage
+\section{}\label{AnnexD}
 \printglossaries
 
 \end{document}
