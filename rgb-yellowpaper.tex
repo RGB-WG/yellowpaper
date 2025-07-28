@@ -1289,14 +1289,14 @@ inclusion and singularity of the commitment
 
 Prime is a layer 1 designed specifically to match
 the requirements of the client-side validation systems \cite{Prime};
-which has a much higher potential for scalability
-comparing to a traditional blockchain approach \cite{Prime}.
+this has a much higher potential for scalability
+compared to a traditional blockchain approach \cite{Prime}.
 Use of Prime also allows to avoid all the complexities associated
 with the Bitcoin TxO seals construct (Section \ref{Seals}).
 
-The complete formal specification of the RGB on Prime (RGB$^\prime$, for short)
-is outside of the scope of the current paper and will be part of the future work.
-For now, we will briefly define the main differences from RGB on Bitcoin (RG\bitcoin, for short)
+The complete formal specification of RGB contracts on Prime (RGB$^\prime$)
+is outside the scope of this paper and will be part of the future work.
+For now, we will briefly define the main differences from RGB contracts on Bitcoin (RG\bitcoin).
 
 The seal definition for RGB$^\prime$ is a randomly picked element of $\mathbb{F}_q$.
 The seal close witness consists of a Prime header \cite{Prime} (published part),
@@ -1314,12 +1314,16 @@ It is provided in full in Appendix \ref{AnnexC}.
 \section{Acknowledgments}
 The whole work was inspired by the earlier ideas of Peter Todd
 on the client-side validation \cite{CSV} and single-use seal \cite{SUS1, SUS2} protocols.
-Giacomo Zucco was the first, who had analyzed its possible applications and
+Giacomo Zucco was the first to analyze its possible applications and
 implications for Bitcoin blockchain and Lightning Network \cite{Zucco}.
-Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol an
+Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol and
 on its operations with Prime, as well as a failback seal mechanism.
 Olga Ukolova had provided a lot of feedback and
 idea discussions during the protocol design and implementation phase.
+
+Early testers and adopters of the RGB consensus I.0 helped to share and finalize the protocol
+and provided valuable feedback.
+Among them, I would like to highlight Bitlight Labs and Armando Christian Dutra.
 
 This project was supported by donations to LNP/BP Labs from Fulgur Ventures, Hojo Foundation,
 Pandora Prime SA, Bitlight Labs, DIBA Inc, iFinex Inc and many individual contributors.
@@ -1443,6 +1447,8 @@ All \textbf{USONIC} instructions do not take arguments and have zero complexity.
 \section{Commitments Specification}\label{AnnexB}
 % Appendix II content here
 
+TBD
+
 \newpage
 \section{RGB Consensus Reference Implementation}\label{AnnexC}
 
@@ -1518,5 +1524,7 @@ RGB I.0 consensus implementation orchestrating operations of the above libraries
 \newpage
 \section{}\label{AnnexD}
 \printglossaries
+
+TBD
 
 \end{document}
