@@ -1078,7 +1078,7 @@ Single-use seals are defined as tuples
 \end{equation}
 \begin{multline}
     \mathsf{u} \triangleq \big\langle \{\xi|_{\mathsf{wout}=0}, \langle \zeta, \xi\rangle|_{=1} \}, \\
-        \{\nu|_{\mathsf{noise}=0}, \langle \zeta^\prime, \xi^\prime\rangle|_{\mathsf{failback}=1} \} \big\rangle \in \mathbb{U}
+        \{\nu|_{\mathsf{noise}=0}, \langle \zeta^\prime, \xi^\prime\rangle|_{\mathsf{fallback}=1} \} \big\rangle \in \mathbb{U}
 \end{multline}
 
 The definition consist of two components:
@@ -1089,7 +1089,7 @@ The definition consist of two components:
     or as a full outpoint, consisting of transaction id and output number
     $\langle \zeta, \xi\rangle$.
 \item[Secondary definition] either a noise data, provided as a means to conceal
-    the seal data; or a \emph{failback seal}, which is described below.
+    the seal data; or a \emph{fallback seal}, which is described below.
 \end{description}
 
 The \textsf{wout} case, briefly described above, is required due to the fact that
@@ -1115,10 +1115,10 @@ into the transaction which spends the transaction outputs participating as seal 
 (named \emph{seal close witness} transaction).
 The specific way the commitment is produced is described in the following subsections.
 
-The \emph{failback seal} provides a way how the state assigned to a seal definition
+The \emph{fallback seal} provides a way how the state assigned to a seal definition
 may be preserved in case the user spends the seal-defined UTXO without creating a valid witness.
-However, at the version I.0 the failback seals are reserved for the future use;
-they may be defined, but any spending with a failback path will be invalid
+However, at the version I.0 the fallback seals are reserved for the future use;
+they may be defined, but any spending with a fallback path will be invalid
 until the consensus version I.1.
 
 \subsubsection{Seal Close Witness}\label{Witness}
@@ -1137,8 +1137,8 @@ separate components:
     \item[DBC proof] the deterministic bitcoin commitment proof that the witness transaction
         includes a valid commitment (see Section \ref{DBC} below), provided only
         for tapret commitments.
-    \item[Failback proof] a constant 1-byte zero value,
-        reserved for the future proofs regarding failback seals.
+    \item[Fallback proof] a constant 1-byte zero value,
+        reserved for the future proofs regarding fallback seals.
     \end{description}
 \end{description}
 
@@ -1317,13 +1317,13 @@ on the client-side validation \cite{CSV} and single-use seal \cite{SUS1, SUS2} p
 Giacomo Zucco was the first to analyze its possible applications and
 implications for Bitcoin blockchain and Lightning Network \cite{Zucco}.
 Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol and
-on its operations with Prime, as well as a failback seal mechanism.
+on its operations with Prime, as well as a fallback seal mechanism.
 Olga Ukolova had provided a lot of feedback and
 idea discussions during the protocol design and implementation phase.
 
 Early testers and adopters of the RGB consensus I.0 helped to share and finalize the protocol
 and provided valuable feedback.
-Among them, I would like to highlight Bitlight Labs and Armando Christian Dutra.
+Among them, I would like to highlight Bitlight Labs and Armando Dutra.
 
 This project was supported by donations to LNP/BP Labs from Fulgur Ventures, Hojo Foundation,
 Pandora Prime SA, Bitlight Labs, DIBA Inc, iFinex Inc and many individual contributors.
