@@ -449,14 +449,14 @@ with \textbf{GFA256} ISA for arithmetic operations
 with finite field elements (see Table \ref{tab:gfa256}).
 It is further extended by \textbf{USONIC} ISA
 for accessing operation data and memory (see Table \ref{tab:usonic}).
-The complete specification on the instruction set architecture is given in Appendix \ref{AnnexA}.
+The complete specification on the instruction set architecture is given in Appendix \ref{ap:ISA}.
 
 \subsubsection{Control Registers}\label{Registers}
 
 Control registers are a part of the base AluVM ISA.
 The are used for the program execution workflow and do not participate
 as explicit arguments for the instructions (however, their value may be accessed or changed
-by some of the instructions, as specified in Appendix \ref{AnnexA}).
+by some of the instructions, as specified in Appendix \ref{ap:ISA}).
 
 \begin{description}
 \item[CH] Halting register. When set to \texttt{true},
@@ -574,7 +574,7 @@ with the following modifications:
 The machine executes a single instruction at each step.
 The complete list of all instructions and their encodings,
 as well as information about registers (i.e., Instruction Set Architecture),
-is given in Appendix \ref{AnnexA}.
+is given in Appendix \ref{ap:ISA}.
 
 AluVM comes with a set of special-purpose control registers,
 described in the Section \ref{Registers}.
@@ -1028,10 +1028,9 @@ specifically:
    with no prefixes.
 \end{enumerate}
 
-Data are serialized into hashers, which usually use a prefix (tagged) to uniquely codify
-the type of the produced commitment. Collections may also be merklized, in order to allow
-compact profs of inclusion. The complete structure of data serialization to produce commitments,
-including tagged prefixes and details of merklization, is given in the Appendix \ref{AnnexB}.
+Data are serialized into hashers,
+which usually use a prefix (tagged) to uniquely codify the type of the produced commitment.
+Collections may also be merklized, in order to allow compact profs of inclusion.
 
 RGB consensus version I.0 uses SHA-256 hash function.
 Future versions may introduce more hashing functions, including zk-friendly,
@@ -1308,7 +1307,7 @@ as required in RG\bitcoin.
 
 The reference implementation is provided in the repositories, and the libraries are listed
 in the consensus section of the RGB-3 standard \cite{RGB3}.
-It is provided in full in Appendix \ref{AnnexC}.
+It is provided in full in Appendix \ref{ap:impl}.
 
 
 \section{Acknowledgments}
@@ -1342,7 +1341,7 @@ who were very supportive during all six years of the work on the project.
 \newpage
 
 \appendix
-\section{RGB Instruction Set Architecture}\label{AnnexA}
+\section{RGB Instruction Set Architecture}\label{ap:ISA}
 
 \begin{table}[h]
 \centering
@@ -1444,13 +1443,7 @@ All \textbf{USONIC} instructions do not take arguments and have zero complexity.
 
 
 \newpage
-\section{Commitments Specification}\label{AnnexB}
-% Appendix II content here
-
-TBD
-
-\newpage
-\section{RGB Consensus Reference Implementation}\label{AnnexC}
+\section{RGB Consensus Reference Implementation}\label{ap:impl}
 
 In the lists below, the top level contains a reference to a repository,
 and the layers underneath describe specific Rust crates with library and binary targets.
@@ -1522,7 +1515,7 @@ RGB I.0 consensus implementation orchestrating operations of the above libraries
 
 
 \newpage
-\section{}\label{AnnexD}
+\section{}\label{ap:gloss}
 \printglossaries
 
 TBD
