@@ -1,10 +1,6 @@
 \documentclass[9pt,oneside]{amsart}
-%\usepackage{tweaklist}
-\usepackage{cancel}
-\usepackage{xspace}
 \usepackage{graphicx}
 \usepackage{multicol}
-\usepackage{subfig}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[a4paper,width=170mm,top=18mm,bottom=22mm,includeheadfoot]{geometry}
@@ -12,12 +8,8 @@
 \usepackage{array}
 \usepackage{verbatim}
 \usepackage{caption}
-\usepackage{natbib}
-\usepackage{float}
-\usepackage{pdflscape}
 \usepackage{mathtools}
-\usepackage[usenames,dvipsnames]{xcolor}
-\usepackage{afterpage}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning}
 \usepackage{glossaries}
@@ -25,22 +17,12 @@
 \usepackage[bookmarks=true, unicode=true, pdftitle={RGB I.0: Scalable Consensus for Client-side Validated Smart Contracts}, pdfauthor={Dr. Maxim Orlovsky},pdfkeywords={RGB, Yellow Paper, blockchain, virtual machine, cryptography, decentralised, client-side validation, Bitcoin, Lightning},pdfborder={0 0 0.5 [1 3]}]{hyperref}
 %,pagebackref=true
 
-\usepackage{tabu} %requires array.
-
-%This should be the last package before \input{Version.tex}
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
-% "hyperref loads the url package internally. Use \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref} to pass the option to the url package when it is loaded by hyperref. This avoids any package option clashes." Source: <https://tex.stackexchange.com/questions/3033/forcing-linebreaks-in-url/3034#comment44478_3034>.
-% Note also this: "If the \PassOptionsToPackage{hyphens}{url} approach does not work, maybe it's "because you're trying to load the url package with a specific option, but it's being loaded by one of your packages before that with a different set of options. Try loading the url package earlier than the package that requires it. If it's loaded by the document class, try using \RequirePackage[hyphens]{url} before the document class." Source: <https://tex.stackexchange.com/questions/3033/forcing-linebreaks-in-url/3034#comment555944_3034>.
-% For more information on using the hyperref package, refer to e.g. https://en.wikibooks.org/w/index.php?title=LaTeX/Hyperlinks&stable=0#Hyperlink_and_Hypertarget.
 
 \makeatletter
  \newcommand{\linkdest}[1]{\Hy@raisedlink{\hypertarget{#1}{}}}
 \makeatother
-\usepackage{seqsplit}
 
-% For formatting
-%\usepackage{underscore}
-%\usepackage{lipsum} % to generate filler text for testing of document rendering
 \usepackage[english]{babel}
 \usepackage[autostyle]{csquotes}
 \MakeOuterQuote{"}
@@ -579,7 +561,7 @@ is given in Appendix \ref{ap:ISA}.
 AluVM comes with a set of special-purpose control registers,
 described in the Section \ref{Registers}.
 Three of these registers influence the halting conditions of the machine:
-\textbb{CK}, \textbb{CH} and \textbb{CL}.
+\textbf{CK}, \textbf{CH} and \textbf{CL}.
 
 The program halts on the following conditions:
 
@@ -1163,9 +1145,9 @@ of the output:
 \begin{equation}
     \mathtt{OP\_RETURN\ OP\_PUSH32\ <MPC\_COMMITMENT>}
 \end{equation}
-where \texttt{OP\_RETURN} is a byte with value $\mathrm{6a}_{16}$,
-\texttt{OP\_PUSH32} is a byte with value $20_{16}$,
-\texttt{<MPC\_COMMITMENT>} is a 32-byte little-endian binary data of the MPC commitment
+where \verb|OP_RETURN| is a byte with value $\mathrm{6a}_{16}$,
+\verb|OP_PUSH32| is a byte with value $20_{16}$,
+\verb|<MPC_COMMITMENT>| is a 32-byte little-endian binary data of the MPC commitment
 (see Section \ref{MPC})).
 
 \subsubsection{Tapret commitments}\label{Tapret}
@@ -1209,7 +1191,7 @@ The tapret DBC proof, included in the anchor structure (see Section \ref{Witness
 consists of the internal public key, used by the output \cite{BIP341},
 \emph{nonce} value and an optional the information about the second node.
 This information proofs that the right-side partner of the Taproot script tree on the layer 1
-does not contain an alternative \textttt{OP\_RETURN} commitment script.
+does not contain an alternative \verb|OP_RETURN| commitment script.
 In the case (1) this information is skipped (since there is no other leaves than the commitment);
 and in cases (2) and (3) depends on the lexicographic ordering
 of tapnode hashes \cite{BIP341} for both of the nodes on the layer~1.
