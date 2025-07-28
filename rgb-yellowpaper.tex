@@ -212,7 +212,7 @@ Instead, RGB runs its own \emph{client-side validated consensus}, where blockcha
 acts as one of the components, the \emph{single-use seal} medium \cite{LNPBP8}.
 The consensus is quantum-secure (as the underlying layer 1 network is not cryptographically secure),
 being based on cryptographic hash functions, not using elliptic-curve cryptography.
-It does not rely on any security assumptions other than collision resistance of the selected
+It does not rely on any security assumptions other than the collision resistance of the selected
 cryptographic hash function.
 This paper provides a complete formal description of the first version of the RGB consensus.
 
@@ -238,7 +238,7 @@ For example, the Boolean type is defined as a set $\mathbb{B} \triangleq \{0, 1\
 
 Scalar variables are given with Latin and Greek lowercase letters.
 The basis for nondecimal scalar literals is given in subscript,
-for example, $10_2$ equals $2$ in decimal notation. Decimal literals omit basis subscript.
+for example, $10_2$ equals $2$ in decimal notation. Decimal literals omit the basis subscript.
 
 \subsubsection{Product types}
 
@@ -257,15 +257,15 @@ such as in $\mathsf{c}_i \triangleq \langle \mathsf{C_{Id}}, \ \ldots \rangle$.
 
 \subsubsection{Sum types}
 
-Enums (sub types) are represented as sets, and enum variables as a values picked from the set.
+Enums (sum types) are represented as sets, and enum variables as a values picked from the set.
 Optional values are represented as belonging to the set $\{ \varnothing, x \}$.
 
 Enums with no associated data are tagged with names,
 with a $\mathbb{N}_8$ value used in data serialization given as a subscript,
 for example $\{ \mathsf{false}|_{=0}, \mathsf{true}|_{=1} \}$.
 
-Enum values with associated data do provide content of the associated type as set members;
-they may include tagged names as a part of the subscript: $( x|_{\mathsf{variantA}=0}, y|_{=1})$.
+Enum values with associated data display content of the associated type as set members;
+they can include tagged names as a part of the subscript: $( x|_{\mathsf{variantA}=0}, y|_{=1})$.
 
 \subsubsection{Collections}
 
@@ -303,7 +303,7 @@ $\mapsto$ instead of $\rightarrow$.
 
 \subsection{Operators}
 The order of the elements in a set is indicated by $\succ$ and $\prec$.
-Terms are defined by $\triangleq$.
+New terms are defined by $\triangleq$.
 
 \subsubsection{Logical operators}
 Logical conditions are specified with $\land$ (AND), $\lor$ (OR) and $\lnot$ (NOT)
@@ -407,9 +407,9 @@ nor for security and formal verification.
 For example, random-memory access has been the source
 of most hacks and security bridges for more than 50 years.
 
-While it is possible to adopt von Neumann-style architecture for zk-STARK provers
+Although it is possible to adopt von Neumann-style architecture for zk-STARK provers
 (one may refer to Cairo \cite{Cairo}), this results in large proof size,
-high computational resource demand, and no ability in doing formal analysis of any program.
+high computational resource demand, and no ability to perform formal analysis of any program.
 Instead of following such an approach, RGB is using a different architecture,
 named SONIC (see Figure \ref{fig:arch}),
 which is specifically designed for formal verification, UTXO-based models, and security.
@@ -418,10 +418,10 @@ The architecture uses a virtual machine zk-AluVM, immutable memory cells of two 
 
 \subsection{zk-AluVM virtual CPU}\label{AluVM}
 
-zk-AluVM (algorithmic logic unit VM) is a pure functional RISC virtual machine
+zk-AluVM (``algorithmic logic unit VM'') is a pure functional RISC virtual machine
 designed for deterministic portable computing tasks \cite{zkAluVM}.
-It is implemented AluVM \cite{AluVM, AluVMCrate},
-a modular framework for creating  RISC instruction set architectures (ISA)
+It is built using AluVM \cite{AluVM, AluVMCrate},
+a modular framework for creating RISC instruction set architectures (ISA)
 and registry-based virtual machines, based on category theory.
 
 \subsubsection{Instruction Set Architecture}
@@ -435,7 +435,7 @@ The complete specification on the instruction set architecture is given in Appen
 
 \subsubsection{Control Registers}\label{Registers}
 
-Control registers are a part of the base AluVM ISA.
+The control registers are part of the base AluVM ISA.
 The are used for the program execution workflow and do not participate
 as explicit arguments for the instructions (however, their value may be accessed or changed
 by some of the instructions, as specified in Appendix \ref{ap:ISA}).
@@ -444,8 +444,8 @@ by some of the instructions, as specified in Appendix \ref{ap:ISA}).
 \item[CH] Halting register. When set to \texttt{true},
     halts the program when \textbf{CK} is set to the failed state.
 \item[CK] Check register with values taken from $\{\mathsf{ok}|_{=0}, \mathsf{failire}|_{=1}\}$.
-    On a failure (like accessing register in \texttt{None} state,
-    zero division, etc.) the register is sat into the failed state.
+    On a failure (like accessing register in \texttt{None} state, zero division, etc.)
+    the register is set to the failed state.
     Can be reset if \textbf{CH} is \texttt{false}.
 \item[CO] Test register, which acts as a Boolean test result.
     Its value is checked by branching and some halting instructions.
@@ -456,7 +456,7 @@ by some of the instructions, as specified in Appendix \ref{ap:ISA}).
     If the register has a value, once \textbf{CA} reaches or exceeds it,
     the VM will set \textbf{CK} in a failed state.
 \item[CS] Call stack, $\{ \mathbb{E} \}^{[0, 256)}$, listing call entry points
-    (see definition of the entry point in Section \ref{Program} and equation \ref{eq:e}).
+    (see the definition of the entry point in Section \ref{Program} and equation \ref{eq:e}).
 \end{description}
 
 \subsubsection{\textbf{GFA256} Registers}
@@ -666,7 +666,7 @@ The contract metadata $\mathsf{m}$ define contract-specific parameters, which in
   (see Table \ref{tab:layer1} for the list of possible values),
 
 \begin{coltable}
-\captionof{table}{Values for different Layer 1 used as a part of RGB contract metadata}\label{tab:layer1}
+\captionof{table}{List of supported Layer 1's}\label{tab:layer1}
 \begin{tabular}{r l}
 \toprule
 $\mathsf{m}_2$ value & Layer 1 \\
@@ -982,7 +982,7 @@ access to the memory and client-side operation data.
 It succeeds if and only if at the halting of the AluVM machine its register \textbf{CK} is not set.
 
 The first part of the algorithm (\ref{eq:evaluate}) checks whether an operation is correct and,
-in case of success, the contract state is evolved (middle expression),
+in the case of success, the contract state is evolved (middle expression),
 or the operation must not be applied to the contract state,
 and further validation must terminate with a failure.
 
@@ -1004,7 +1004,7 @@ specifically:
 \item Totally ordered sets must be serialized in the order of the elements
 \item Partially ordered and unordered sets do not participate in the RGB consensus.
 \item Maps are serialized with elements corresponding to the key and value, composed as a tuple.
-   The keys of the ordered maps must represent a totally ordered set
+   The keys of the ordered maps must represent a totally ordered set,
    and define the order of serialization of key-value tuples.
 \item Product types (tuples) are serialized according to the order of their elements,
    with no prefixes.
@@ -1014,9 +1014,9 @@ Data are serialized into hashers,
 which usually use a prefix (tagged) to uniquely codify the type of the produced commitment.
 Collections may also be merklized, in order to allow compact profs of inclusion.
 
-RGB consensus version I.0 uses SHA-256 hash function.
+Version I.0 of the RGB consensus uses the SHA-256 hash function.
 Future versions may introduce more hashing functions, including zk-friendly,
-via the use of feature flags in the contract metadata (field \#4, see Section \ref{Contracts}).
+by using feature flags in contract metadata (field \#4, see Section \ref{Contracts}).
 
 
 \section{RGB on Bitcoin}
@@ -1027,28 +1027,28 @@ the following parameters apply:
 
 \begin{enumerate}
 \item A \emph{contract issue} must reference the specific bitcoin blockchain \& network
-  as a value for its field $\mathsf{m}_2$ (\emph{layer 1} in contract metadata)
+  as a value for its field $\mathsf{m}_2$ (\emph{layer 1} in the contract metadata)
   using Table \ref{tab:layer1}.
 \item TxO-based single-use seals must be used (Section \ref{Seals}),
   with Bitcoin transaction outputs serving as a seal definitions,
   and Bitcoin transaction, spending such an output, being a single-use seal closing witness
   (see \cite{LNPBP8} for the definitions of these terms);
 \item Multi-message bundles (Section \ref{MMB})
-  and multi-protocol commitment schemes (Section \ref{MPC}) must be used for packing
+  and multiprotocol commitment schemes (Section \ref{MPC}) must be used for packing
   multiple operations under same contract and multiple contracts
   into a single \gls{seal close witness} Bitcoin transaction.
 \end{enumerate}
 
-The TxO single-use seals, multi-protocol commitments an multi-message bundles are vast standards;
-their complete description wouldn't fit this paper, and,
+The TxO single-use seals, multiprotocol commitments and multimessage bundles are vast standards;
+their complete description would not fit this paper, and,
 since all the standards are not RGB-specific,
 their formal specification will be a subject of separate work.
-Here, we won't be analyzing their properties and will be providing just an overview
+Here, we will not be analyzing their properties and will be providing just an overview
 of their functionality and structure, especially on how it applies to RGB.
 
 \subsection{TxO-based seals}\label{Seals}
 
-The TxO-based Bitcoin single-use seals are defined in the LNPBP-10 standard \cite{LNPBP10}.
+TxO-based Bitcoin single-use seals are defined in the LNPBP-10 standard \cite{LNPBP10}.
 
 \subsubsection{Seal Definitions}
 
@@ -1059,26 +1059,26 @@ Single-use seals are defined as tuples
 \end{equation}
 \begin{multline}
     \mathsf{u} \triangleq \big\langle \{\xi|_{\mathsf{wout}=0}, \langle \zeta, \xi\rangle|_{=1} \}, \\
-        \{\nu|_{\mathsf{noise}=0}, \langle \zeta^\prime, \xi^\prime\rangle|_{\mathsf{failback}=1} \} \big\rangle \in \mathbb{U}
+        \{\nu|_{\mathsf{noise}=0}, \langle \zeta^\prime, \xi^\prime\rangle|_{\mathsf{fallback}=1} \} \big\rangle \in \mathbb{U}
 \end{multline}
 
-The definition consist of two components:
+The definition consists of two components:
 \begin{description}
-\item[Primary definition] a Bitcoin transaction outpoint, specified either
-    as an output index $\xi \in \mathbb{N}_{32}$ residing in the same witness transaction
-    which closes seals related to the spent inputs (the \textsf{wout} variant),
-    or as a full outpoint, consisting of transaction id and output number
-    $\langle \zeta, \xi\rangle$.
-\item[Secondary definition] either a noise data, provided as a means to conceal
-    the seal data; or a \emph{failback seal}, which is described below.
+\item[Primary definition] a Bitcoin transaction outpoint,
+    specified either as an output index $\xi \in \mathbb{N}_{32}$
+    residing in the same witness transaction which closes seals related to the spent inputs
+    (\textsf{wout} variant), or as a complete outpoint,
+    consisting of transaction id and output number $\langle \zeta, \xi\rangle$.
+\item[Secondary definition] is either noise data, provided as a means to conceal the seal;
+    or a \emph{fallback seal}, both of which are described below.
 \end{description}
 
 The \textsf{wout} case, briefly described above, is required due to the fact that
 a seal close witness transaction id is not known unless the new operation data are fully defined
 (since it commits to the id of this new operation);
-so, if the user wants to re-use the outputs of the seal transactions for the new seal
+so, if the user wants to reuse the outputs of the seal transactions for the new seal
 definitions, the only available information is the transaction output index.
-In the future, during the verification, the transaction id can be automatically resolved
+In the future, during verification, the transaction id can be automatically resolved
 as a witness transaction id, known at that moment of time.
 
 The noise is provided for privacy reasons:
@@ -1096,10 +1096,10 @@ into the transaction which spends the transaction outputs participating as seal 
 (named \emph{seal close witness} transaction).
 The specific way the commitment is produced is described in the following subsections.
 
-The \emph{failback seal} provides a way how the state assigned to a seal definition
+The \emph{fallback seal} provides a way how the state assigned to a seal definition
 may be preserved in case the user spends the seal-defined UTXO without creating a valid witness.
-However, at the version I.0 the failback seals are reserved for the future use;
-they may be defined, but any spending with a failback path will be invalid
+However, at the version I.0 the fallback seals are reserved for the future use;
+they may be defined, but any spending with a fallback path will be invalid
 until the consensus version I.1.
 
 \subsubsection{Seal Close Witness}\label{Witness}
@@ -1118,28 +1118,28 @@ separate components:
     \item[DBC proof] the deterministic bitcoin commitment proof that the witness transaction
         includes a valid commitment (see Section \ref{DBC} below), provided only
         for tapret commitments.
-    \item[Failback proof] a constant 1-byte zero value,
-        reserved for the future proofs regarding failback seals.
+    \item[Fallback proof] is a constant 1-byte zero value,
+        reserved for future proofs regarding fallback seals.
     \end{description}
 \end{description}
 
 
 \subsection{Deterministic Bitcoin Commitments}\label{DBC}
 
-Deteministic bitcoin commitment protocol, defined in LNPBP-6 standard \cite{LNPBP6},
-provides a way of putting a provably-singular commitment to some external message
+The deterministic bitcoin commitment protocol, defined in the LNPBP-6 standard \cite{LNPBP6},
+provides a way to put a provably singular commitment to some external message
 into a Bitcoin transaction.
 
 \begin{enumerate}
-\item The first bitcoin transaction output, which is either OP\_RETURN or P2TR,
-    must contain a commitment to the multi-protocol commitment, defined in Section \ref{MMB} below.
+\item The first output of the bitcoin transaction, which is either OP\_RETURN or P2TR,
+    must contain a commitment to the multiprotocol commitment, defined in Section \ref{MMB} below.
 \item If such an output is an OP\_RETURN output, it must contain \emph{opret} type of commitment.
 \item If such an output is a P2TR output, it must contain \emph{tapret} type of commitment.
 \end{enumerate}
 
 \subsubsection{Opret commitments}\label{Opret}
 
-Opret commitments are done by putting the following Bitcoin script into the \textsf{scriptPubkey}
+Opret commitments are made by placing the following Bitcoin script in the \textsf{scriptPubkey}
 of the output:
 \noindent
 \begin{equation}
@@ -1147,19 +1147,19 @@ of the output:
 \end{equation}
 where \verb|OP_RETURN| is a byte with value $\mathrm{6a}_{16}$,
 \verb|OP_PUSH32| is a byte with value $20_{16}$,
-\verb|<MPC_COMMITMENT>| is a 32-byte little-endian binary data of the MPC commitment
+\verb|<MPC_COMMITMENT>| is a 32-byte little endian binary data of the MPC commitment
 (see Section \ref{MPC})).
 
 \subsubsection{Tapret commitments}\label{Tapret}
 
-The procedure of tapret commitment is more complex than for opret commitment,
-however, it has several adantages.
+The procedure of tapret commitment is more complex than the one for opret commitment;
+however, it has several advantages.
 First, it does not increase the transaction size;
-second, it does not exposes the fact that the Bitcoin transaction contains any associated
+second, it does not expose the fact that the Bitcoin transaction contains any associated
 data outside the Bitcoin protocol, which may be important for privacy reasons,
-as for avoiding filtering in Bitcoin transaction relays.
-The full commitment protocol is specified in LNPBP-12 standard \cite{LNPBP12}.
-Here we provide a brief version of its formalism.
+such as to avoid filtering in Bitcoin transaction relays.
+The complete commitment protocol is specified in the LNPBP-12 standard \cite{LNPBP12}.
+Here, we provide a brief version of its formalism.
 
 First, a tapscript leaf \cite{BIP342}, containing the commitment, must be constructed.
 It consists of 29 bytes with value equal to $61_{64}$
@@ -1170,29 +1170,29 @@ followed by a single \texttt{OP\_RETURN} byte with value $6A_{16}$,
 and a \emph{nonce} byte, which meaning will be explained later.
 The total length of the tapscript leaf, constructed in such a way, must be equal to 64 bytes.
 
-Next, the constructed tapscript should be embedded into the Taproot Script tree,
-used in constructing \textsf{scriptPubkey} of the transaction output \cite{BIP341}.
-The mechanism of embedding depends on the structure of bitcoin wallet descriptor \cite{BIP380},
-however, for all descriptor types only three options are possible:
+Next, the constructed tapscript should be embedded in the Taproot script tree,
+used to construct \textsf{scriptPubkey} of the transaction output \cite{BIP341}.
+The embedding mechanism depends on the structure of the bitcoin wallet descriptor \cite{BIP380},
+however, for all descriptor types, only three options are possible:
 \noindent
 \begin{enumerate}
 \item when no script tree is present,
     the constructed tapleaf script becomes the only leaf in the Script Tree;
 \item when a script tree contains a single leaf, it is shifted one level below,
-    and is put next to the constructed tapleaf scrept, containing the commitment;
+    and is put next to the constructed tapleaf script, containing the commitment;
 \item when a script tree contains multiple leaf, they all shifted one level below,
     such that the root of the tree becomes a sibling to the constructed tapleaf script.
 \end{enumerate}
 \noindent
-The resulting tree is used in constructing \textsf{scriptPubey}
+The resulting tree is used to construct \textsf{scriptPubkey}
 according to the procedure described in \cite{BIP341}.
 
 The tapret DBC proof, included in the anchor structure (see Section \ref{Witness})
 consists of the internal public key, used by the output \cite{BIP341},
-\emph{nonce} value and an optional the information about the second node.
-This information proofs that the right-side partner of the Taproot script tree on the layer 1
+\emph{nonce} value, and an optional information about the second node.
+This information proves that the partner of the first level of Taproot script tree
 does not contain an alternative \verb|OP_RETURN| commitment script.
-In the case (1) this information is skipped (since there is no other leaves than the commitment);
+In case (1) this information is skipped (since there are no other leaves than the commitment);
 and in cases (2) and (3) depends on the lexicographic ordering
 of tapnode hashes \cite{BIP341} for both of the nodes on the layer~1.
 If the leaf tapscript with the commitment precedes the other node,
@@ -1207,39 +1207,39 @@ Multi-message bundles allow multiple independent messages
 to be packed as a single commitment under a single RGB contract.
 
 This is achieved by creating an ordered map $\mathcal{T}$ of
-bitcoin seal closing witness transaction input numbers $i$
-to corresponding operation ids $\{ \mathsf{Id}(o) \}$ under the contract:
+the bitcoin seal closing witness transaction input numbers $i$
+to the corresponding operation ids $\{ \mathsf{Id}(o) \}$ under the contract:
 \noindent
 \begin{equation}
     \mathcal{T} \triangleq \{ i \in \mathbb{N}_{32} \rightarrow \mathsf{Id}(o) \}^{[0, 2^{32})}
 \end{equation}
 
-This maps serves as a proof for MMB commitment and is included as a part of the
+This map serves as a proof for MMB commitment and is included as a part of the
 client-side seal close witness (see Section \ref{Witness} above).
 
-The map is encoded into the used hash function to produce
-$\mathbb{N}_{256}$ commitment value $\beta$,
-which is used later in multi-protocol commitments (see Section \ref{MPC} below).
+The map is encoded into the hash function
+used to produce the commitment value $\mathbb{N}_{256}$ $\beta$,
+which is used later in multiprotocol commitments (see Section \ref{MPC} below).
 
-Multi-message bundle commitment scheme is specified in LNPBP-11 standard \cite{LNPBP11}.
+Multimessage bundle commitment scheme is specified in LNPBP-11 standard \cite{LNPBP11}.
 
-\subsection{Multi-protocol Commitments}\label{MPC}
+\subsection{Multiprotocol Commitments}\label{MPC}
 
-Since a single Bitcoin transaction outputs may be assigned RGB contract state
+Since a single Bitcoin transaction output may be assigned the RGB contract state
 under multiple seal definitions, and under multiple RGB contracts,
 a single Bitcoin transaction spending that output will serve as
 \gls{seal close witness} to multiple seals.
 Thus, a special protocol is required to pack the individual seal close witnesses
 into a single deterministic bitcoin commitment.
-We use multi-protocol commitment scryptographic scheme, defined in the LNPBP-4
+We use a multiprotocol commitment cryptographic scheme, defined in the LNPBP-4
 standard \cite{LNPBP4}.
 
-The standard defines a way to commit to a multiple independent messages
+The standard defines a way to commit to multiple independent messages
 with a single digest such that the fact of each particular commitment,
 and a protocol under which the commitment is made may be proven without
 exposing the information about the other messages and used protocols.
 
-Multiple $\beta \in \mathbb{N}_{256}$ hashes of the multi-message bundle under
+Multiple $\beta \in \mathbb{N}_{256}$ hashes of the multimessage bundle under
 RGB contracts are put into a map
 \noindent
 \begin{equation}
@@ -1263,7 +1263,7 @@ The remaining array slots are filled with deterministically generated entropy va
 The resulting array is merklized, and a markle path to the $\beta$ commitment,
 together with the contract id and merklization parameters, is used as a proof of
 inclusion and singularity of the commitment
-(see description of \emph{anchor} structure in Section \ref{Witness} above).
+(see the description of the \emph{anchor} structure in Section \ref{Witness} above).
 
 
 \section{RGB on Prime}
@@ -1272,24 +1272,24 @@ Prime is a layer 1 designed specifically to match
 the requirements of the client-side validation systems \cite{Prime};
 this has a much higher potential for scalability
 compared to a traditional blockchain approach \cite{Prime}.
-Use of Prime also allows to avoid all the complexities associated
+The use of Prime also allows us to avoid all the complexities associated
 with the Bitcoin TxO seals construct (Section \ref{Seals}).
 
 The complete formal specification of RGB contracts on Prime (RGB$^\prime$)
-is outside the scope of this paper and will be part of the future work.
+is outside the scope of this paper and will be part of future work.
 For now, we will briefly define the main differences from RGB contracts on Bitcoin (RG\bitcoin).
 
 The seal definition for RGB$^\prime$ is a randomly picked element of $\mathbb{F}_q$.
 The seal close witness consists of a Prime header \cite{Prime} (published part),
 and a merkle path proving the inclusion of the RGB operation id into the header (client-side part).
-RGB$^\prime$ does not require use of multi-protocol commitments or multi-message bundles,
+RGB$^\prime$ does not require the use of multiprotocol commitments or multimessage bundles,
 as required in RG\bitcoin.
 
 \section{Reference Implementation}
 
 The reference implementation is provided in the repositories, and the libraries are listed
 in the consensus section of the RGB-3 standard \cite{RGB3}.
-It is provided in full in Appendix \ref{ap:impl}.
+It is provided in full in the Appendix \ref{ap:impl}.
 
 
 \section{Acknowledgments}
@@ -1298,7 +1298,7 @@ on the client-side validation \cite{CSV} and single-use seal \cite{SUS1, SUS2} p
 Giacomo Zucco was the first to analyze its possible applications and
 implications for Bitcoin blockchain and Lightning Network \cite{Zucco}.
 Adam Borko had suggested ideas and critics on the zk-STARK compatibility of the protocol and
-on its operations with Prime, as well as a failback seal mechanism.
+on its operations with Prime, as well as a fallback seal mechanism.
 Olga Ukolova had provided a lot of feedback and
 idea discussions during the protocol design and implementation phase.
 
@@ -1412,16 +1412,18 @@ LDIRO	&136	&$\mathsf{d}_\sigma|_{\mathsf{addr} = \mathsf{a}_\mathbf{UI1}}$	&\tex
 LDIAO	&137	&$\mathsf{e}_\varsigma|_{\mathsf{addr} = \mathsf{b}_\mathbf{UI2}}$	&\textbf{EA-ED, CO}	&Load the immutable memory cell referenced by the next operation input to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
 LDORO	&138	&$\sigma(\mathsf{y}_\mathbf{UI3})$	&\textbf{EA-ED, CO}	&Load next destructible operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
 LDOAO	&139	&$\varsigma(\mathsf{z}_\mathbf{UI4})$	&\textbf{EA-ED, CO}	&Load next immutable operation output value to \textbf{EA-ED} registers. Sets \textbf{CO} to indicate whether the next element was present. \\ \midrule
-RSTIRO	&140	&-	&\textbf{UI1}	&Resets iterator over the input descructible memory cells by setting \textbf{UI1} to zero. \\ \midrule
+RSTIRO	&140	&-	&\textbf{UI1}	&Resets iterator over the input destructible memory cells by setting \textbf{UI1} to zero. \\ \midrule
 RSTIAO	&141	&-	&\textbf{UI2}	&Resets iterator over the input immutable memory cells by setting \textbf{UI2} to zero. \\ \midrule
-RSTORO	&142	&-	&\textbf{UI3}	&Resets iterator over the output descructible memory cells by setting \textbf{UI3} to zero. \\ \midrule
+RSTORO	&142	&-	&\textbf{UI3}	&Resets iterator over the output destructible memory cells by setting \textbf{UI3} to zero. \\ \midrule
 RSTOAO	&143	&-	&\textbf{UI4}	&Resets iterator over the output immutable memory cells by setting \textbf{UI4} to zero. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The \textbf{USONIC} ISA extension defines four $\mathbb{N}_{16}$ registers, \textbf{UI1-UI4}, which acts as operation input iterators.
-All \textbf{USONIC} instructions do not take arguments and have zero complexity. None of them changes the value in \textbf{CK}.
+The \textbf{USONIC} ISA extension defines four $\mathbb{N}_{16}$ registers,
+\textbf{UI1-UI4}, which acts as operation input iterators.
+All \textbf{USONIC} instructions do not take arguments and have zero complexity.
+None of them changes the value in \textbf{CK}.
 
 
 \newpage
@@ -1439,7 +1441,7 @@ Provides core cryptographic primitives for client-side validation (not specific 
 
 \begin{description}
    \item[\texttt{commit\_verify}] implementation of tagged hashing, merklization,
-   commitment creation workflows, multi-protocol commitments and multi-message bundles.
+   commitment creation workflows, multiprotocol commitments and multimessage bundles.
    \item[\texttt{commit\_encoding\_derive}]
    derivation macros for applying commitment workflows to data structures.
    \item[\texttt{single\_use\_seals}]
@@ -1477,7 +1479,7 @@ Virtual machine for RGB (see Section \ref{AluVM})
 Consensus-level part of the polynomial computer based on zk-AluVM (see Section \ref{Sonic}).
 
 \subsection{BP Core Library}
-
+    
 \url{https://github.com/BP-WG/bp-core}
 
 Implementation of Bitcoin TxO-based single-use seals and commitment schemes.
@@ -1493,7 +1495,7 @@ Implementation of Bitcoin TxO-based single-use seals and commitment schemes.
 
 \url{https://github.com/RGB-WG/rgb-core}
 
-RGB I.0 consensus implementation orchestrating operations of the above libraries.
+RGB I.0 consensus implementation orchestrates the operations of the above libraries.
 
 
 \newpage
