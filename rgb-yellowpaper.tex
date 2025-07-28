@@ -137,7 +137,7 @@ Instead, RGB employs a novel SONIC
 which provides capability-based access control to the contract state,
 individually owned by a well-defined contract parties via novel single-use seal mechanism.
 RGB does state validation using zk-AluVM virtual machine, designed to support zk-STARK provers.
-It has a single security assumption of the collision-resistance hash function,
+It has a single security assumption of the collision-resistance hash function
 and, thus, is quantum-secure.
 The protocol acts as partially replicated state machines (PRiSM),
 which makes it distinct from traditional blockchain-based smart contract systems.
@@ -154,7 +154,7 @@ Thus, the proposed RGB consensus is scalable, provably-secure, and formally veri
 
 The idea of smart contracts, originating from Nick Szabo \cite{Szabo},
 has been an inspiration for almost a generation.
-However, all existing attempts for building a permissionless smart contracts,
+However, all existing attempts for building permissionless smart contracts,
 such as based on blockchains, different types of sidechains,
 rollups, state channels, and others, fail to solve the trilemma:
 \begin{itemize}
@@ -167,8 +167,8 @@ The main reason was the fact that all the mentioned approaches require
 all participants to verify the state and state transition function of all world smart contracts,
 which, for obvious reasons, cannot scale.
 
-This problem can be addressed with
-\emph{client-side validation}: the paradigm proposed by Peter Todd in 2016 \cite{CSV}.
+This problem can be addressed with \emph{client-side validation}:
+the paradigm proposed by Peter Todd in 2016 \cite{CSV}.
 Its core idea is the fact that the state validation in a distributed system
 does not need to be performed globally by all parties to the decentralized protocol;
 instead, only parties involved in a specific state transition need to perform the validation.
@@ -257,7 +257,8 @@ such as in $\mathsf{c}_i \triangleq \langle \mathsf{C_{Id}}, \ \ldots \rangle$.
 
 \subsubsection{Sum types}
 
-Enums (sum types) are represented as sets, and enum variables as a values picked from the set.
+Enums (sum types) are represented as sets, and enum variables are represented as values
+picked from a set of allowed values.
 Optional values are represented as belonging to the set $\{ \varnothing, x \}$.
 
 Enums with no associated data are tagged with names,
@@ -269,7 +270,7 @@ they can include tagged names as a part of the subscript: $( x|_{\mathsf{variant
 
 \subsubsection{Collections}
 
-Collections (variable-size sets of the same-typed objects, both ordered or unordered)
+Collections (variable-size sets of objects of the same type, ordered or unordered)
 are denoted with Latin uppercase calligraphic letters (like $\mathcal{S}$).
 For representing set elements, we use braces $\{\ldots\}$ and the set builder notation \cite{setbuilder}.
 The type of variable-sized sets is given as an element type with a power component
@@ -1049,6 +1050,13 @@ of their functionality and structure, especially on how it applies to RGB.
 \subsection{TxO-based seals}\label{Seals}
 
 TxO-based Bitcoin single-use seals are defined in the LNPBP-10 standard \cite{LNPBP10}.
+It represents a significant development from the original ideas of Peter Todd [\SUS1, \SUS2],
+bringing support for seal composition into graph structures with interdependencies,
+as well as an ability to close a set of seals over a single message, producing a single witness.
+This was required due to the fact that a single bitcoin transaction output may be used
+for multiple seal definitions under multiple RGB contracts;
+and, when it is spent, the spending transaction, becoming a part of the seal close witness,
+needs to contain multiple commitments to multiple operations.
 
 \subsubsection{Seal Definitions}
 
