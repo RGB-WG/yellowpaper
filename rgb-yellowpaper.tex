@@ -172,15 +172,20 @@ all participants to verify the state and state transition function of all world 
 which, for obvious reasons, cannot scale.
 
 Multiple attempts has being made to solve blockchain non-scalability issue
-via adding layers on top: sidechains \ref{sidechains, drivechains},
-statechains \ref{lightining}, state channels \ref{statechannel}, plasma \ref{plasma},
-optimistic rollups \ref{arbitrum}, validiums \ref{validium}, zk-rollups \ref{starknet, mina}.
+via adding layers on top: sidechains \cite{sidechains, drivechains},
+statechains \cite{statechains}, state channels \cite{lightning, eltoo}, plasma \cite{plasma},
+optimistic rollups \cite{optimism}, validiums \cite{validium},
+zk-rollups \cite{zk-rollups, Cairo, mina}.
 However, all of the approaches result in either
 centralization, trust assumptions, an ability of censorship,
-or suffer from economical non-scalability,
-like in the case of the infamous Lightning network inbound liquidity issue \ref{lightningsucks}.
+or suffer from economical non-scalability \cite{drivechainsucks, plasmasucks, rollupsucks},
+like in the case of the infamous Lightning network inbound liquidity \cite{lightningsucks1, lightningsucks4},
+routing \cite{lightningsucks2} and centralization issues \cite{lightningsucks3, lightningsucks5}.
 Also, all layer 2 solutions has the state which must be eventually committed
 to the blockchain, i.e., the state transition function still have to be global.
+This becomes especially an issue for a reach-state blockchains designed for a
+``Turing-complete'' contracts, serving a complete VM,
+like in Ethereum \cite{ethereum} or Cardano \cite{cardano}.
 Thus, all of them may save only a constant factor and cannot solve the fundamental
 limitation created by a blockchain-based consensus.
 
@@ -224,7 +229,7 @@ In our work, we have developed the original idea of RGB into the first universal
 client-side validated distributed smart contracting system,
 solving all the above-mentioned issues.
 RGB employs a novel SONIC (State machine with Ownership Notation Involving Capabilities) architecture,
-leveraging zk-AluVM virtual machine \cite{AluVM} and zk-STARKs \cite{STARKs}
+leveraging zk-AluVM virtual machine \cite{AluVM} and zk-STARKs \cite{zkSTARKs}
 for scalability, security, and formal verification.
 The protocol operates as partially replicated state machines (PRiSM);
 it uses polynomial computation and capability-based access control,
@@ -327,12 +332,10 @@ specifying the range of cardinality allowed for the set.
 For example, $\mathbb{N}_8^{[0, 32)}$ indicates a sequence of bytes with cardinality (length)
 in the range of $0$ to $2^{32} - 1$.
 
-Sets are differentiated by the ordering of their elements using index notation:
-\begin{itemize}
-    \item $\{ \cdots \}_\prec$ for partially ordered sets;
-    \item $\{ \cdots \}_\preceq$ for totally ordered sets;
-    \item no index for unordered sets.
-\end{itemize}
+Sets are differentiated by the ordering of their elements using index:
+$\{ \cdots \}_\prec$ for partially ordered sets;
+$\{ \cdots \}_\preceq$ for totally ordered sets;
+no index for unordered sets.
 
 Unicode strings are represented as a sequence made up of $\mathbb{U}$ set elements
 (UTF-8 character set); ASCII strings as a sequence made up of $\mathbb{S}$ set elements.
@@ -366,8 +369,8 @@ $\nleftrightarrow$ (XOR) and $\thicksim$ (NOT)
 Logical conditions are specified with $\land$ (AND), $\lor$ (OR) and $\lnot$ (NOT).
 Operator $\stackrel{?}{=}$ performs equivalence test and results in a Boolean value.
 
-Operator $\Longleftrightarrow$ is used for \emph{if and only if} condition,
-$\Rightarrow$ for \emph{than}, $\nRightarrow$ for \emph{else}, $\perp$ for program termination.
+Operator $\Longleftrightarrow$~is used for \emph{if and only if} condition,
+$\Rightarrow$~for \emph{than}, $\nRightarrow$~for \emph{else}, $\perp$~for program termination.
 
 \section{Protocol Overview}
 
@@ -386,7 +389,7 @@ making it possible to use any zk-STARK prover for zero-knowledge compression.
 are assigned to specific parties (actors), and this assignment is made using \emph{capabilities},
 which are implemented using a single-use seal cryptographic scheme.
 
-Components:
+The principal components of the RGB consensus design are the following:
 \begin{itemize}
   \item SONIC polynomial computer (its consensus-related layer named ``UltraSONIC'')
   with capability-based memory and zk-AluVM virtual machine,
@@ -408,7 +411,7 @@ While offering a convenient user experience, these architectures were not design
 arithmetization, required in creation of zk-STARK proofs, nor for distributed system requirements,
 nor for security and formal verification.
 For example, random-memory access has been the source
-of most hacks and security bridges for more than 50 years \cite{RAM}.
+of most hacks and security bridges for more than 50 years \cite{RAMsucks1, RAMsucks2, RAMsucks3}.
 
 Although it is possible to adopt von Neumann-style architecture for zk-STARK provers
 (one may refer to Cairo \cite{Cairo}), this results in large proof size,
@@ -418,8 +421,6 @@ other forms of formal analysis of an arbitrary program.
 Instead of following such an approach, RGB is using a different architecture,
 named SONIC (see Figure \ref{fig:arch}),
 which is specifically designed for formal verification, UTXO-based models, and security.
-The architecture uses a virtual machine zk-AluVM, immutable memory cells of two types
-(read-once memory, R1M; and write-once memory, W1M), and capability-based R1M access.
 
 \end{multicols}
 \begin{figure}[h]
@@ -471,6 +472,9 @@ The architecture uses a virtual machine zk-AluVM, immutable memory cells of two 
     \end{tikzpicture}
 \end{figure}
 \begin{multicols}{2}
+
+The architecture uses a virtual machine zk-AluVM, immutable memory cells of two types
+(read-once memory, R1M; and write-once memory, W1M), and capability-based R1M access.
 
 \subsection{zk-AluVM virtual CPU}\label{AluVM}
 
@@ -725,6 +729,8 @@ $\mathsf{c}_0$ & See Section \ref{Operation} & n/a & Genesis operation \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\newpage
 \begin{multicols}{2}
 
 The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
@@ -1391,7 +1397,6 @@ inclusion and singularity of the commitment
 (see the description of the \emph{anchor} structure in Section \ref{Witness} above).
 
 
-\newpage
 \section{RGB on Prime}
 
 Prime is a layer 1 designed specifically to match the requirements of the client-side validation \cite{Prime}.
@@ -1440,7 +1445,7 @@ interested in the topic of decentralized systems and cypherpunk;
 people, who were inspiring to continue the work in the most complex times.
 Among them to be named (in alphabetical order):
 Alex Kravets, Alexandre Poltorak, Alexis Roussel, Alexis Sellier,
-Amir Taaki, Christian Decker, Rene Pickhardt.
+Amir Taaki, Christian Decker, Jörg (``Yojoe'') and Rene Pickhardt.
 
 This project was supported by donations to LNP/BP Labs from Fulgur Ventures, Hojo Foundation,
 Pandora Prime SA, Bitlight Labs, DIBA Inc, iFinex Inc and many individual contributors.
