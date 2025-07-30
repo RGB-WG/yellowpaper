@@ -16,7 +16,7 @@
 
 \newglossaryentry{locking condition}{
     name={locking condition},
-    description={Data structure $\ell$, defining access rights to an \gls{immutable memory} cell. Consist of an optional program entry point $\varepsilon$ and auxiliary data $\Theta$. The script must be satisfied with $\Theta$, an operation-wide witness and/or witness in the spending operation input (see \gls{operation-level witness} and \gls{input-specific witness})}
+    description={data structure $\ell$, defining access rights to an \gls{immutable memory} cell. Consist of an optional program entry point $\varepsilon$ and auxiliary data $\Theta$. The script must be satisfied with $\Theta$, an operation-wide witness and/or witness in the spending operation input (see \gls{operation-level witness} and \gls{input-specific witness})}
 }
 
 \newglossaryentry{composed value}{
@@ -51,12 +51,12 @@
 
 \newglossaryentry{published witness}{
     name={published seal close witness},
-    description={A part of \gls{seal close witness}, which is available for public, i.e., is included in some \gls{layer~1} network data structures. See also \gls{seal close witness transaction}}
+    description={a part of \gls{seal close witness}, which is available for public, i.e., is included in some \gls{layer~1} network data structures. See also \gls{seal close witness transaction}}
 }
 
 \newglossaryentry{client-side witness}{
     name={client-side seal close witness},
-    description={A part of \gls{seal close witness}, which is not available for public, and must be kept by the parties of the RGB contract on their local machines. The parties exchange these data via P2P transactions. See also \gls{anchor}}
+    description={a part of \gls{seal close witness}, which is not available for public, and must be kept by the parties of the RGB contract on their local machines. The parties exchange these data via P2P interaction. See also \gls{anchor}}
 }
 
 \newglossaryentry{seal close witness transaction}{
@@ -71,12 +71,12 @@
 
 \newglossaryentry{operation-level witness}{
     name={operation-level witness},
-    description={Optional data $\Upsilon$, provided in the client-side part of an RGB operation, which may be used to satisfy \gls{locking condition} to gain access to destructible memory cells. Unlike \gls{input-specific witness} these data apply to all inputs. Not related to \gls{seal close witness}.}
+    description={Optional data $\Upsilon$, provided in the client-side part of an RGB operation, which may be used to satisfy \gls{locking condition} to gain access to destructible memory cells. Unlike \gls{input-specific witness} these data apply to all inputs. Not related to \gls{seal close witness}}
 }
 
 \newglossaryentry{input-specific witness}{
     name={input-specific witness},
-    description={Optional data $\Omega$, provided per operation input, which may be used to satisfy \gls{locking condition} to gain access to destructible memory cells. Unlike \gls{operation-level witness} these data apply to a single input. Not related to \gls{seal close witness}.}
+    description={optional data $\Omega$, provided per operation input, which may be used to satisfy \gls{locking condition} to gain access to destructible memory cells. Unlike \gls{operation-level witness} these data apply to a single input. Not related to \gls{seal close witness}}
 }
 
 \newglossaryentry{fallback seal}{
@@ -87,7 +87,7 @@
 
 \newglossaryentry{genesis}{
     name={genesis},
-    description={The first operation in RGB contract, which becomes part of the contract \gls{issue}.}
+    description={The first operation in RGB contract, which becomes part of the contract \gls{issue}}
 }
 
 \newglossaryentry{issue}{
