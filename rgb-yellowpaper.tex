@@ -235,23 +235,23 @@ The protocol operates as partially replicated state machines (PRiSM);
 it uses polynomial computation and capability-based access control,
 which makes it distinct from traditional smart contract systems.
 The protocol operates on top of a UTXO-based blockchain~\cite{UTXO}
-(so-called \emph{layer~1}) using it as a finality gadget;
+(so-called \gls{layer~1}) using it as a finality gadget;
 however, the blockchain consensus is not used for ordering of transactions or storing a state,
 unlike in all other smart contract systems.
-Thus, layer 1, in strict computer science terms,
+Thus, \gls{layer~1}, in strict computer science terms,
 does not serve as an RGB consensus by itself,
 since it does not fulfill any of the properties defining
 a distributing consensus protocol \cite{consensus}:
 \noindent\nopagebreak
 \begin{itemize}
     \item ordering of transactions (RGB transactions are not published or broadcast via blockchain);
-    \item state machine replication (no state is replicated via layer 1);
-    \item atomic broadcasts (since the ordering of layer 1 transactions does not matter for RGB).
+    \item state machine replication (no state is replicated via \gls{layer~1});
+    \item atomic broadcasts (since the ordering of \gls{layer~1} transactions does not matter for RGB).
 \end{itemize}
 
 Instead, RGB runs its own \emph{client-side validated consensus}, where blockchain consensus
 acts as one of the components, the \emph{single-use seal} medium \cite{LNPBP8}.
-The consensus is quantum-secure (as long as the underlying layer 1 network is cryptographically secure),
+The consensus is quantum-secure (as long as the underlying \gls{layer~1} network is cryptographically secure),
 being based on cryptographic hash functions and not using any elliptic-curve cryptography.
 It does not rely on any security assumptions other than the collision resistance of the selected
 cryptographic hash function.
@@ -545,7 +545,7 @@ please refer to the table \ref{tab:usonic}.
 The SONIC architecture supports two types of addressed memory:
 \begin{description}
 \item[Read-once memory] (R1M), or \gls{destructible memory} $\mathcal{D}$,
-    having capability-based access and used for storing \emph{owned state}
+    having capability-based access and used for storing \gls{owned state}
     accessible only by a valid actor providing a 256-bit \gls{authentication token};
 
 \item[Write-once memory] (W1M), or \gls{immutable memory} $\mathcal{I}$,
@@ -590,7 +590,7 @@ The auxiliary data $\Theta$ may be used by a codex verifier script or the custom
 to check the satisfaction of the lock conditions with an input-specific witness $\Omega$,
 which will come from the spending operation input (see Section \ref{Input}).
 For example, $\Theta$ may be a value of a public key,
-and the input-specific witness $\Omega$ will have a signature,
+and the \gls{input-specific witness} $\Omega$ will have a signature,
 while the script $\varepsilon$ will validate the signature for that key.
 
 Destructible memory cells are destroyed on the first read and cannot be accessed or referenced anymore.
@@ -693,7 +693,7 @@ and does not include (as of version I.0) any cross-contract functionality\footno
     for instance by using atomic swaps.}.
 
 Since RGB operates as a partially-replicated state machine (PRiSM),
-each party has a partial view over contracts, named \emph{local contract}.
+each party has a partial view over contracts, named \gls{local contract}.
 A local contract is defined as
 \noindent
 \begin{equation}
@@ -704,8 +704,8 @@ where $\Theta$ is a contract issue and
 $\mathcal{O}$ is a locally known part of the contract operations
 (excluding the genesis operation $\mathsf{c}_0$ already present in $\Theta$, see below).
 
-The \emph{issue} defines the \emph{unique} and \emph{global} properties of the contract;
-it must be known to all parties (i.e., present in each \emph{local contract} instance) and
+The \gls{issue} defines the \emph{unique} and \emph{global} properties of the contract;
+it must be known to all parties (i.e., present in each \gls{local contract} instance) and
 is represented by a tuple
 \noindent
 \begin{equation}\label{eq:issue}
@@ -733,7 +733,7 @@ $\mathsf{c}_0$ & See Section \ref{Operation} & n/a & Genesis operation \\
 \newpage
 \begin{multicols}{2}
 
-The commitment to the \emph{issue} data represents a unique and global \emph{contract id}
+The commitment to the \gls{issue} data represents a unique and global \emph{contract id}
 $\mathsf{Id}(\mathsf{C})$, or $\mathsf{C_{Id}}$.
 
 The contract metadata $\mathsf{m}$ define contract-specific parameters, which include
@@ -741,11 +741,11 @@ The contract metadata $\mathsf{m}$ define contract-specific parameters, which in
 
 \begin{enumerate}
 \item boolean, indicating whether the contract is a test contract,
-\item a specific consensus layer 1 used by the contract
+\item a specific \gls{layer~1} used by the contract
   (see Table \ref{tab:layer1} for the list of possible values),
 
 \begin{coltable}
-\captionof{table}{List of supported Layer 1's}\label{tab:layer1}
+\captionof{table}{List of supported Layer~1's}\label{tab:layer1}
 \begin{tabular}{r l}
 \toprule
 $\mathsf{m}_2$ value & Layer 1 \\
@@ -789,7 +789,7 @@ Next, the codex defines the following contract parameters:
 \item Specific finite field $\mathbb{F}_q$ defined by its order $q$,
   and a bit dimension for finite field type variables, denoted hereinafter as $\|q\|_\mathsf{bits}$;
 \item cryptographic hash function used in commitment schemes;
-\item specific blockchain, used as $layer 1$,
+\item specific blockchain, used as \gls{layer~1},
 \item specific single-use seal protocol,
   (which also defines the subset of specific blockchain networks
   and commitment schemes, see Table \ref{tab:layer1});
@@ -845,7 +845,7 @@ and the second being specialists in computer science.
 
 \subsection{Contract State}
 
-A \emph{local contract state} is fully defined by a set of its operations, $\mathcal{O}$.
+A \gls{local contract state} is fully defined by a set of its operations, $\mathcal{O}$.
 
 Since RGB consensus needs to operate as a polynomial computer
 with a computation trace that can be arithmetized into a set of polynomial constraints,
@@ -856,7 +856,7 @@ This state is not human-readable and must be processed using specific ABIs and i
 to be understood by humans; however, this part is outside the consensus definition,
 belonging to the RGB standard library, defined in the RGB-1010 standard \cite{RGB1010}.
 
-Local contract state is a tuple $\langle \mathcal{D}, \mathcal{I} \rangle$,
+\Gls{local contract state} is a tuple $\langle \mathcal{D}, \mathcal{I} \rangle$,
 consisting of destructible $\mathcal{D}$ and immutable $\mathcal{I}$ memory cells,
 as described in Section \ref{Memory}.
 
@@ -866,7 +866,8 @@ as described in Section \ref{Memory}.
   The atoms of the state (memory cells) can be accessed by a contract operation
   referencing them as inputs only once, getting destroyed by the fact of the reference.
 
-\item[Immutable state] is represented by the \emph{write-once multiple-access} memory (W1M),
+\item[Immutable state] is represented by the \gls{write-once memory}
+  (W1M, also write-once multiple-access memory),
   which is defined by contract operation immutable outputs
   and is accessed by contract operations immutable inputs.
 \end{description}
@@ -893,7 +894,7 @@ consisting of:
   \end{equation}
 \noindent
 where $s_x$ is a seal definition;
-\item a seal close witness,
+\item a \gls{seal close witness},
 which values must belong to a set of either unit value, or a specific witness $w_i$.
 \end{itemize}
 
@@ -909,7 +910,7 @@ which meaning is given in the table \ref{tab:op}.
 
 \subsubsection{Genesis Operation}
 
-The contract \emph{genesis} is a special type of operation, which contains no input,
+The contract \gls{genesis} is a special type of operation, which contains no input,
 and where $\mathsf{C_{Id}}$ is replaced with $\mathsf{k_{Id}}$:
 \noindent
 \begin{equation}
@@ -925,7 +926,7 @@ is replaced by the value of $\mathsf{C_{Id}}$ before the id of the operation is 
 
 \subsubsection{Operation Destructible Inputs}\label{Input}
 
-Operations, which are not \emph{genesis} and not \emph{state extensions},
+Operations, which are not \gls{genesis} and not \glspl{state extension},
 have a non-empty destructible memory cell refs, which are composed of tuples
 \noindent
 \begin{equation}\label{eq:input}
@@ -933,10 +934,10 @@ a_k \in \mathcal{A}_i \triangleq \langle \mathsf{d}_x, \Omega \rangle
 \end{equation}
 \noindent
 where $\mathsf{d}_x$ represents a reference to a previously-defined destructible memory cell,
-and $\Omega$ is an \emph{input-specific witness}
-(not to mix with \emph{single-use seal close witness} $w_i$,
-and operation-level witness $\Upsilon$).
-The input-specific witness $\Omega$ participates in the capability-based memory access,
+and $\Omega$ is an \gls{input-specific witness}
+(not to mix with single-use \gls{seal close witness} $w_i$,
+and \gls{operation-level witness} $\Upsilon$).
+The \gls{input-specific witness} $\Omega$ participates in the capability-based memory access,
 as it is described in the Section \ref{R1M} above.
 
 \end{multicols}
@@ -979,7 +980,7 @@ a single-use-seal primitive is a unique object that can be closed over a message
 A single-use seal supports two fundamental operations:
 \begin{enumerate}
     \item $\mathsf{close}(u,m) \rightarrow w$: a close of a seal $u$ over a message $m$, producing a witness $w$.
-    Closing fulfills the original commitment, specified in the seal definition.
+    This fulfills the original commitment, specified in the seal definition.
     \item $\mathsf{verify}(u,w,m) \rightarrow \mathbb{B}$: 
     given witness $w$ verify that the seal $u$ was closed over a message $m$.
 \end{enumerate}
@@ -990,7 +991,7 @@ for two distinct messages $m_1$, $m_2$, when applied to the same seal
 (although it is acceptable to have multiple witnesses for the same seal / message pair).
 
 RGB contracts use a specific form of the single-use seal protocol,
-defined by the \emph{layer 1} value (see Table \ref{tab:layer1})
+defined by the \gls{layer~1} value (see Table \ref{tab:layer1})
 in the contract metadata within the issue structure (\ref{eq:issue}).
 For instance, Bitcoin- and Liquid-based contracts will use TxO-based seals,
 described in Section \ref{Seals}.
@@ -1000,8 +1001,8 @@ created by that operation (\ref{eq:op}).
 These seal definitions must match 1-to-1 with the destructible state $\mathcal{Y}$,
 defined in that operation, as specified in (\ref{eq:seals}).
 A pair of the destructible state, defined by an operation, and related single-use seal
-is called an \emph{assignment}: the state is assigned to the seal.
-These pairs constitute what is called \emph{owned state} of the local contract.
+is called an \gls{assignment}: the state is assigned to the seal.
+These pairs constitute what is called \gls{owned state} of the local contract.
 
 When an operation $o_{i+1}$ references a previous operation $o_i$ output,
 which defines destructible state, it must provide a \gls{seal close witness} $w_{i+1}$
@@ -1021,14 +1022,14 @@ An element of this set is a tuple, $o_i \triangleq \langle c_i, S_i, u_i \rangle
 \item client-side information of contract state change, $c_i$;
 \item an unordered map of seal definitions performed by an operation, 
   $S_i: d_j \in \mathcal{Y}_i \rightarrow s_j$, where $s_j$ is a seal definition;
-\item a seal closing witness information, 
+\item a \gls{seal close witness} information, 
   which values must belong to a set of either unit value, or a specific witness $w_i$: 
   $u_i \in \{ \varnothing, w_i \}$.
 \end{itemize}
 
-The set $\mathcal{O}$ has an initial element, called \emph{genesis} $o_0$, for which $u_i = \varnothing$.
+The set $\mathcal{O}$ has an initial element, called \gls{genesis} $o_0$, for which $u_i = \varnothing$.
 There might be other operations for which $u_i = \varnothing$;
-these operations are named \emph{state extensions} and must not destroy any owned state
+these operations are named \glspl{state extension} and must not destroy any owned state
 (i.e., must not jave any outputs of a destructible type).
 
 All operations in $\mathcal{O}$ are partially ordered by the rule
@@ -1136,13 +1137,13 @@ or bitcoin-compatible sidechains (such as Liquid, \cite{Liquid}),
 the following parameters apply:
 
 \begin{enumerate}
-\item A \emph{contract issue} must reference the specific bitcoin blockchain \& network
-  as a value for its field $\mathsf{m}_2$ (\emph{layer 1} in the contract metadata)
+\item A contract \gls{issue} must reference the specific bitcoin blockchain \& network
+  as a value for its field $\mathsf{m}_2$ (\gls{layer~1} in the contract metadata)
   using values given in the Table \ref{tab:layer1}.
 \item TxO-based single-use seals must be used (Section \ref{Seals}),
   with Bitcoin transaction outputs serving as seal definitions,
   and Bitcoin transaction, spending such an output,
-  being a published part of a single-use seal closing witness
+  being a published part of a single-use \gls{seal close witness}
   (see \cite{LNPBP8} for the definitions of these terms);
 \item Multi-message bundles (Section \ref{MMB})
   and multiprotocol commitment schemes (Section \ref{MPC}) must be used for packing
@@ -1165,7 +1166,7 @@ bringing support for seal composition into graph structures with their interdepe
 as well as an ability to close a set of seals over a single message, producing a single witness.
 This was required due to the fact that a single bitcoin transaction output may be used
 for multiple seal definitions under multiple RGB contracts;
-and, when it is spent, the spending transaction, becoming a part of the seal close witness,
+and, when it is spent, the spending transaction, becoming a part of the \gls{seal close witness},
 needs to contain multiple commitments to multiple operations.
 
 \subsubsection{Seal Definitions}
@@ -1184,25 +1185,26 @@ The definition consists of two components:
 \begin{description}
 \item[Primary definition] is a Bitcoin transaction outpoint,
     specified either as an output index $\xi \in \mathbb{N}_{32}$
-    residing in the same witness transaction which closes seals related to the spent inputs
+    residing in the same \gls{seal close witness transaction} which closes seals related to the spent inputs
     (\textsf{wout} variant), or as a complete outpoint,
     consisting of transaction id and output number $\langle \zeta, \xi\rangle$.
 \item[Secondary definition] is either noise data, provided as a means to conceal the seal;
-    or a \emph{fallback seal}, both of which are described below.
+    or a \gls{fallback seal}, both of which are described below.
 \end{description}
 
 The \textsf{wout} case, briefly described above, is required due to the fact that
-a seal close witness transaction id is not known unless the new operation data are fully defined
+a \gls{seal close witness transaction} id is not known unless the new operation data are fully defined
 (since it commits to the id of this new operation);
 hence, if the user wants to reuse the outputs of
-the seal transaction close witness for the new seal definitions,
+the \gls{seal close witness transaction} for the new seal definitions,
 the only available information is the transaction output index.
 Later on, during the verification \ref{eq:evaluate},
 the transaction id can be automatically resolved
-as a witness transaction id, which is already known at that moment of time.
+as a \gls{seal close witness transaction} id,
+which is already known at that moment of time.
 
 The noise is provided for privacy reasons:
-since the \emph{authentication token} is a hash of the seal definition,
+since the \gls{authentication token} is a hash of the seal definition,
 and the total number of all UTXOs existing at the moment the operation is created is bound,
 and can be easily enumerated, the noise hides the information about the specific UTXO owned by user.
 
@@ -1213,22 +1215,22 @@ must be closed over the commitment identifier of the spending operation
 This is achieved by putting a deterministic bitcoin commitment to
 the message derived from the operation id $\mathsf{Id}(o_{i+1})$,
 into the transaction which spends the transaction outputs participating as seal definitions
-(named \emph{seal close witness} transaction).
+(named \gls{seal close witness transaction}).
 The specific way the commitment is produced is described in the following subsections.
 
-The \emph{fallback seals} provides a way how the state assigned to a seal definition
-may be preserved in case the user spends the seal-defined UTXO without creating a valid witness.
-However, at the version I.0 the fallback seals are reserved for the future use;
+The \glspl{fallback seal} provides a way how the state assigned to a seal definition
+may be preserved in case the user spends the seal-defined UTXO without creating a valid \gls{seal close witness}.
+However, at the version I.0 the \glspl{fallback seal} are reserved for the future use;
 they may be defined, but any spending with a fallback path will be invalid
 until the consensus version I.1.
 
 \subsubsection{Seal Close Witness}\label{Witness}
 
-Seal closing witness $w_i$, defined in \ref{eq:op}, in case of TxO seals consists of two
+\Gls{seal close witness} $w_i$, defined in \ref{eq:op}, in case of TxO seals consists of two
 separate components:
 \begin{description}
-\item[Published witness] represented by a \emph{seal close witness} transaction;
-\item[Client-side witness] also named \emph{anchor},
+\item[\Gls{published witness}] represented by a \gls{seal close witness transaction};
+\item[\Gls{client-side witness}] also named \gls{anchor},
     which includes:
     \begin{description}
     \item[MMB proof] — the proof that each witness transaction input
@@ -1240,7 +1242,7 @@ separate components:
         a valid deterministic bitcoin commitment (see Section \ref{DBC} below).
         This proof is provided only for tapret commitments.
     \item[Fallback proof] is a constant 1-byte zero value,
-        reserved for future proofs for fallback seals use.
+        reserved for future proofs for \glspl{fallback seal} use.
     \end{description}
 \end{description}
 
@@ -1254,8 +1256,8 @@ into a Bitcoin transaction.
 \begin{enumerate}
 \item The first output of the bitcoin transaction, which is either OP\_RETURN or P2TR,
     must commit to MPC, as defined in Section \ref{MPC} below.
-\item If such an output is an OP\_RETURN output, it must contain \emph{opret} type of commitment.
-\item If such an output is a P2TR output, it must contain \emph{tapret} type of commitment.
+\item If such an output is an OP\_RETURN output, it must contain \gls{opret} type of commitment.
+\item If such an output is a P2TR output, it must contain \gls{tapret} type of commitment.
 \end{enumerate}
 
 \subsubsection{Opret commitments}\label{Opret}
@@ -1308,7 +1310,7 @@ however, only three options are possible for all descriptor types:
 The resulting tree is used to construct \textsf{scriptPubkey}
 according to the procedure described in \cite{BIP341}.
 
-The tapret DBC proof, included in the anchor structure (see Section \ref{Witness})
+The tapret DBC proof, included in the \gls{anchor} structure (see Section \ref{Witness})
 consists of the internal public key, used by the output \cite{BIP341},
 \emph{nonce} value, and an optional information about the second node.
 This information proves that the partner of the first level of Taproot script tree
@@ -1336,7 +1338,7 @@ This is useful in multiparty bitcoin transactions,
 such as payjoin constructs \cite{payjoin}, or multipeer state channels \cite{nucleus}.
 
 MMB security achieved by creating an ordered map $\mathcal{T}$ of
-the bitcoin seal closing witness transaction input numbers $i$
+the bitcoin \gls{seal close witness transaction} input numbers $i$
 to the corresponding operation ids $\{ \mathsf{Id}(o) \}$ under the contract:
 \noindent
 \begin{equation}
@@ -1344,7 +1346,7 @@ to the corresponding operation ids $\{ \mathsf{Id}(o) \}$ under the contract:
 \end{equation}
 
 This map serves as a proof for MMB commitment and is included as a part of the
-client-side seal close witness (see Section \ref{Witness} above).
+\gls{client-side witness} (see Section \ref{Witness} above).
 
 The map is encoded into the hash function
 used to produce the commitment value $\beta \in \mathbb{N}_{256}$,
@@ -1394,12 +1396,12 @@ The remaining array slots are filled with deterministically generated entropy va
 The resulting array is merklized, and a merkle path to the $\beta$ commitment,
 together with the contract id and merklization parameters, is used as a proof of
 inclusion and singularity of the commitment
-(see the description of the \emph{anchor} structure in Section \ref{Witness} above).
+(see the description of the \gls{anchor} structure in Section \ref{Witness} above).
 
 
 \section{RGB on Prime}
 
-Prime is a layer 1 designed specifically to match the requirements of the client-side validation \cite{Prime}.
+Prime is a \gls{layer~1} designed specifically to match the requirements of the client-side validation \cite{Prime}.
 When combined with zk-STARKs, it may achieve scalability of $O(1)$,
 independent from a number of transactions and participants \cite{Prime} —
 a result which cannot be made possible with traditional blockchains.
@@ -1411,9 +1413,9 @@ is outside the scope of this paper and will be part of future work.
 For now, we will briefly define the main differences from RGB contracts on Bitcoin (RG\bitcoin).
 
 The seal definition for RGB$^\prime$ is a randomly picked element of $\mathbb{F}_q$.
-The published part of the seal close witness consists of a Prime header \cite{Prime},
+The published part of the \gls{seal close witness} consists of a Prime header \cite{Prime},
 and a merkle path proving the inclusion of the RGB operation id into the header
-serves as the witness client-side part.
+serves as the gls{client-side witness part}.
 RGB$^\prime$ does not require the use of multiprotocol commitments or multimessage bundles,
 which were unavoidable in RG\bitcoin.
 
@@ -1431,7 +1433,7 @@ on the client-side validation \cite{CSV} and single-use seal \cite{SUS1, SUS2} p
 Giacomo Zucco was the first to analyze its possible applications and
 implications for Bitcoin blockchain and Lightning Network \cite{Zucco}.
 Adam Borko had provided ideas and critics on the zk-STARK compatibility of the protocol and
-on its operations with Prime, as well as a fallback seal mechanism.
+on its operations with Prime, as well as a \gls{fallback seal} mechanism.
 Olga Ukolova gave a lot of feedback during the protocol design and implementation phase,
 as well as many years of devoted work to build and educate the community around the project.
 
@@ -1652,7 +1654,5 @@ RGB I.0 consensus implementation orchestrates the operations of the above librar
 \newpage
 \section{}\label{ap:gloss}
 \printglossaries
-
-TBD
 
 \end{document}

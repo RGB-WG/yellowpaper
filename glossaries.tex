@@ -1,11 +1,22 @@
+
+\newglossaryentry{layer~1}{
+    name={layer 1},
+    description={in context of RGB, a part of the consensus protocol, operating as a public network. May be represented by a blockchain network, or a new type of network, such as \Gls{prime}}
+}
+
+\newglossaryentry{prime}{
+    name={Prime},
+    description={a \gls{layer~1} designed specifically to match the requirements of the client-side validation, which has a theoretical scalability of $O(1)$, i.e., independent of the number of transactions and participants}
+}
+
 \newglossaryentry{authentication token}{
 	name={authentication token},
-    description={unique identifier, an element of the finite field $\mathbb{F}_q$, used for capability-based access to write-once memory cell}
+    description={unique identifier $\alpha$, an element of the finite field $\mathbb{F}_q$, used for capability-based access to write-once memory cell}
 }
 
 \newglossaryentry{locking condition}{
     name={locking condition},
-    description={program defining access rights to an \gls{immutable memory} cell, which must be satisfied with a witness in the spending operation input}
+    description={Data structure $\ell$, defining access rights to an \gls{immutable memory} cell. Consist of an optional program entry point $\varepsilon$ and auxiliary data $\Theta$. The script must be satisfied with $\Theta$, an operation-wide witness and/or witness in the spending operation input (see \gls{operation-level witness} and \gls{input-specific witness})}
 }
 
 \newglossaryentry{composed value}{
@@ -35,5 +46,86 @@
 
 \newglossaryentry{seal close witness}{
     name={seal close witness},
-    description={}
+    description={$w_i$ proving that the single-use seal was indeed closed over some specific message. Consists of \gls{published witness} and \gls{client-side witness} parts. See also \gls{seal close witness transaction}}
+}
+
+\newglossaryentry{published witness}{
+    name={published seal close witness},
+    description={A part of \gls{seal close witness}, which is available for public, i.e., is included in some \gls{layer~1} network data structures. See also \gls{seal close witness transaction}}
+}
+
+\newglossaryentry{client-side witness}{
+    name={client-side seal close witness},
+    description={A part of \gls{seal close witness}, which is not available for public, and must be kept by the parties of the RGB contract on their local machines. The parties exchange these data via P2P transactions. See also \gls{anchor}}
+}
+
+\newglossaryentry{seal close witness transaction}{
+    name={seal close witness transaction},
+    description={a \gls{published witness} for RGB on Bitcoin}
+}
+
+\newglossaryentry{anchor}{
+    name={anchor},
+    description={a \gls{client-side witness} for RGB on Bitcoin}
+}
+
+\newglossaryentry{operation-level witness}{
+    name={operation-level witness},
+    description={Optional data $\Upsilon$, provided in the client-side part of an RGB operation, which may be used to satisfy \gls{locking condition} to gain access to destructible memory cells. Unlike \gls{input-specific witness} these data apply to all inputs. Not related to \gls{seal close witness}.}
+}
+
+\newglossaryentry{input-specific witness}{
+    name={input-specific witness},
+    description={Optional data $\Omega$, provided per operation input, which may be used to satisfy \gls{locking condition} to gain access to destructible memory cells. Unlike \gls{operation-level witness} these data apply to a single input. Not related to \gls{seal close witness}.}
+}
+
+\newglossaryentry{fallback seal}{
+    name={fallback seal},
+    description={an part of single-use seal definition, which defines a second seal,
+    used if the first seal was not properly closed}
+}
+
+\newglossaryentry{genesis}{
+    name={genesis},
+    description={The first operation in RGB contract, which becomes part of the contract \gls{issue}.}
+}
+
+\newglossaryentry{issue}{
+    name={issue},
+    description={data structure defining unique RGB contract}
+}
+
+\newglossaryentry{state extension}{
+    name={state extension},
+    description={a type of RGB operation, which has no inputs referencing destructible state, and no \gls{seal close witness}}
+}
+
+\newglossaryentry{owned state}{
+    name={owned state},
+    description={RGB \gls{local contract state}, consisting of individual \glspl{assignment}}
+}
+
+\newglossaryentry{assignment}{
+    name={assignment},
+    description={a pair of single-use seal definition and a \gls{destructible memory} cell}
+}
+
+\newglossaryentry{local contract state}{
+    name={local contract state},
+    description={a state known on the local node, as a result of partial contract replication}
+}
+
+\newglossaryentry{local contract}{
+    name={local contract},
+    description={a part of RGB contract operation history $\mathcal{O}$ known on the local node, as a result of partial contract replication}
+}
+
+\newglossaryentry{tapret}{
+    name={tapret},
+    description={a form of deterministic bitcoin commitment used in \gls{seal close witness transaction}, produced using Taproot script tree}
+}
+
+\newglossaryentry{opret}{
+    name={opret},
+    description={a form of deterministic bitcoin commitment used in \gls{seal close witness transaction}, produced using a dedicated \texttt{OP\_RETURN} output}
 }
