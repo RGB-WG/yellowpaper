@@ -1415,7 +1415,7 @@ For now, we will briefly define the main differences from RGB contracts on Bitco
 The seal definition for RGB$^\prime$ is a randomly picked element of $\mathbb{F}_q$.
 The published part of the \gls{seal close witness} consists of a Prime header \cite{Prime},
 and a merkle path proving the inclusion of the RGB operation id into the header
-serves as the gls{client-side witness part}.
+serves as the \gls{client-side witness} part.
 RGB$^\prime$ does not require the use of multiprotocol commitments or multimessage bundles,
 which were unavoidable in RG\bitcoin.
 
@@ -1423,8 +1423,6 @@ which were unavoidable in RG\bitcoin.
 
 The details on the reference implementation in Rust language are provided in the Appendix \ref{ap:impl},
 which are also specified in the RGB-3 standard \cite{RGB3}.
-The complete source code of the reference implementation, with tests and excessive comments removed,
-is also given in the Appendix \ref{ap:src}.
 
 
 \section{Acknowledgments}
@@ -1650,6 +1648,115 @@ Implementation of Bitcoin TxO-based single-use seals and commitment schemes.
 
 RGB I.0 consensus implementation orchestrates the operations of the above libraries.
 
+
+\newpage
+\section{Commitment Structure}\label{ap:Commitments}
+
+\subsection{Codex Identifier}
+
+\begin{verbatim}
+commitment CodexId: for Codex, hasher SHA256, tagged urn:ubideco:sonic:codex#2025-05-15 
+  serialize Codex
+    bytes version: len 1, alias ReservedBytes1 
+    str name: len 0..=FF.h 
+    ascii developer: alias Identity, first AsciiPrintable, rest AsciiPrintable, len 1..=1000.h 
+    field timestamp: I64 
+    bytes features: len 4, alias ReservedBytes4 
+    field fieldOrder: U256 
+    struct verificationConfig: CoreConfig 
+      enum halt: Bool, false 0, true 1 
+        field some: U64, option, wrapped, tag 1 
+    struct inputConfig: CoreConfig 
+      enum halt: Bool, false 0, true 1 
+        field some: U64, option, wrapped, tag 1 
+    map verifiers: len 0..=FF.h 
+      field key: U16 
+      struct value: LibSite 
+        bytes libId: len 32, alias LibId 
+        field offset: U16 
+\end{verbatim}
+
+\subsection{Contract Identifier}
+
+\begin{verbatim}
+commitment ContractId: for Issue, hasher SHA256, tagged urn:ubideco:sonic:contract#2024-11-16 
+  serialize version: ReservedBytes1
+    const 0: U8
+  serialize meta: ContractMeta
+    enum testnet: Bool, false 0, true 1 
+    enum consensus: Consensus, none 0, bitcoin 16, liquid 17, prime 32 
+    field timestamp: I64 
+    bytes features: len 6, alias ReservedBytes6 
+    union name: ContractName 
+      field unnamed: Unit, tag 0 
+      ascii named: wrapped, alias TypeName, first AlphaCapsLodash, rest AlphaNumLodash, len 1..=64.h, tag 1 
+    ascii issuer: alias Identity, first AsciiPrintable, rest AsciiPrintable, len 1..=1000.h 
+  serialize codexId: commitment CodexId
+  serialize genesisId: commitment OpId
+\end{verbatim}
+
+\subsection{Geenesis Operation Identifier}
+
+\begin{verbatim}
+commitment Opid: for Genesis, hasher SHA256, tagged urn:ubideco:ultrasonic:operation#2024-11-14 
+  serialize version: ReservedBytes1
+    const 0: U8
+  serialize codexId: commitment, alias CodexId
+  serialize callId: U16
+  serialize nonce: Fe256
+  serialize opWitness: StateValue
+  merklize destructibleIn: [Input ^ 0]
+  merklize immutableIn: [CellAddr ^ 0]
+  merklize destructibleOut: [StateCell ^ 0..<2^16]
+    serialize StateCell
+      union data: StateValue
+      field auth: U256, alias AuthToken, alias Fe256
+      struct lock: option, wrapped CellLock, tag 1
+        union aux: StateValue
+        struct script: LibSite, option, wrapped, tag 1
+          bytes libId: len 32, alias LibId
+          field offset: U16
+  merklize immutableOut: [StateData ^ 0..<2^16]
+    serialize StateData
+      union value: StateValue
+      bytes raw: len 0..<2^16, option, wrapped RawData, tag 1
+\end{verbatim}
+
+\newpage
+\subsection{Operation Identifier}
+
+\begin{verbatim}
+commitment Opid: for Operation, hasher SHA256, tagged urn:ubideco:ultrasonic:operation#2024-11-14 
+  serialize version: ReservedBytes1
+    const 0: U8
+  serialize contractId: commitment, alias ContractId
+  serialize callId: U16
+  serialize nonce: Fe256
+  serialize opWitness: StateValue
+  merklize destructibleIn: [Input ^ 0..<2^16]
+    serialize Input
+      struct addr: CellAddr 
+        bytes opid: len 32, alias Opid 
+        field pos: U16 
+      union witness: StateValue 
+  merklize immutableIn: [CellAddr ^ 0..<2^16]
+    serialize CellAddr
+      bytes opid: len 32, alias Opid 
+      field pos: U16 
+  merklize destructibleOut: [StateCell ^ 0..<2^16]
+    serialize StateCell
+      union data: StateValue 
+      field auth: U256, alias AuthToken, alias Fe256 
+      struct lock: option, wrapped CellLock, tag 1 
+        union aux: StateValue 
+        struct script: LibSite, option, wrapped, tag 1 
+          bytes libId: len 32, alias LibId 
+          field offset: U16 
+  merklize immutableOut: [StateData ^ 0..<2^16]
+    serialize StateData
+      union value: StateValue
+      bytes raw: len 0..<2^16, option, wrapped RawData, tag 1 
+\end{verbatim}
 
 \newpage
 \section{}\label{ap:gloss}
