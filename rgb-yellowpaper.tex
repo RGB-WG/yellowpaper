@@ -5,6 +5,7 @@
 \usepackage{amssymb}
 \usepackage[a4paper,width=170mm,top=18mm,bottom=22mm,includeheadfoot]{geometry}
 \usepackage{booktabs}
+\usepackage{enumitem}
 \usepackage{array}
 \usepackage{verbatim}
 \usepackage{caption}
@@ -18,6 +19,7 @@
 %,pagebackref=true
 
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+\def\UrlBreaks{\do\/\do-}
 
 \makeatletter
  \newcommand{\linkdest}[1]{\Hy@raisedlink{\hypertarget{#1}{}}}
@@ -161,7 +163,8 @@ has been an inspiration for almost a generation of researchers and innovators.
 Nevertheless all existing attempts for building permissionless smart contracts
 were based on fully-replicable blockchain consensus,
 and thus were failing to solve the trilemma of being
-\begin{itemize}
+
+\begin{itemize}[topsep=0pt]
     \item scalable as $O(1)$, or at least as $O(\log n)$;
     \item universal (``Turing-complete'');
     \item decentralized, permissionless, and trustless.
@@ -179,8 +182,9 @@ zk-rollups \cite{zk-rollups, Cairo, mina}.
 However, all of the approaches result in either
 centralization, higher trust assumptions, possibility of a censorship,
 or suffer from economical non-scalability \cite{drivechainsucks, plasmasucks, rollupsucks},
-like in the case of the infamous Lightning network inbound liquidity \cite{lightningsucks1, lightningsucks4},
-routing \cite{lightningsucks2} and centralization issues \cite{lightningsucks3, lightningsucks5}.
+like in the case of the infamous Lightning network
+inbound liquidity \cite{lightningsucks1, lightningsucks4}, routing \cite{lightningsucks2} and 
+centralization issues \cite{lightningsucks3, lightningsucks5}\footnotemark.
 Also, all layer 2 solutions has the state which must be eventually published
 to the blockchain, so, the state transition business logic also has to be global.
 This becomes especially an issue for blockchains designed for a
@@ -188,6 +192,12 @@ This becomes especially an issue for blockchains designed for a
 like in Ethereum \cite{ethereum} or Cardano \cite{cardano}.
 Thus, all of them may save only a constant factor and cannot solve the fundamental
 limitation created by a blockchain-based consensus.
+
+\footnotetext{The issues are rather specific to the modern
+Lightning network based on dual-peer channels \cite{BOLT},
+and should be absent in other designs \cite{nucleus, johnlaw1, johnlaw2, johnlaw3, factories}.
+Yet, \emph{any} state channels end up with storing the state update in blockchain,
+and thus scale as $O(n)$.}
 
 \subsection{Client-side Validation}
 
@@ -219,8 +229,9 @@ Based on the ideas of Peter Todd, Giacomo Zucco had proposed
 an early idea of RGB as a client-side validated asset system,
 leveraging Bitcoin transactions (both on-chain and off-chain, like in Lightning network)
 for the \emph{single-use seals} protocol \cite{Zucco}.
-However, this early idea and prototype implementation was lacking programmability,
-support for non-trivial state, ability for a Bitcoin UTXO to be used by multiple assets,
+However, this early idea was based on practically inconvenient public key tweaking \cite{P2C},
+was limited only to a single-asset scenario,
+was lacking programmability, support for non-trivial state,
 and was not zk-friendly.
 
 \subsection{Our Contribution}
@@ -503,7 +514,7 @@ They are used for the program execution workflow and do not participate
 as explicit arguments for the instructions; however, their value may be accessed or changed
 by some of the instructions, as specified in Appendix \ref{ap:ISA}.
 
-\begin{description}
+\begin{description}[topsep=6pt]
 \item[CK] Check register with values taken from $\{\mathsf{ok}|_{=0}, \mathsf{failire}|_{=1}\}$.
     On a failure (like accessing register in \texttt{None} state, zero division, etc.)
     the register is set to the failed state.
@@ -796,7 +807,7 @@ result in the contract state transitions.
 
 Next, the codex defines the following contract parameters:
 
-\begin{itemize}
+\begin{itemize}[topsep=0pt]
 \item Specific finite field $\mathbb{F}_q$ defined by its order $q$,
   and a bit dimension for the finite field type variables, denoted hereinafter as $\|q\|_\mathsf{bits}$;
 \item cryptographic hash function used in commitment schemes;
@@ -839,7 +850,7 @@ $V$ & $\mathbb{N}_{16} \rightarrow \langle \mathbb{N}_8^{32}, \mathbb{N}_{16} \r
 
 Configurations for a zk-AluVM are 3-tuples, which values correspond to:
 \noindent
-\begin{enumerate}
+\begin{enumerate}[topsep=0pt]
 \item Boolean flag, encoded as a byte,
     indicating whether a VM must halt on the first occurrence of a failure;
 \item Boolean, indicating whether a complexity limit is set;
@@ -893,6 +904,7 @@ as described in Section \ref{Evaluate} and equation (\ref{eq:evaluate}).
 \subsection{Contract Operation}\label{Operation}
 
 Contract operation is a tuple
+
 \begin{equation}\label{eq:op}
 o_i \triangleq \big\langle \mathsf{c}_i, \mathcal{S}_i, \{ \varnothing, w_i \} \big\rangle
 \end{equation}
@@ -994,8 +1006,8 @@ Analogous to the real-world, physical single-use-seals used to secure shipping c
 a single-use-seal primitive is a unique object that can be closed over a message exactly once.
 
 A single-use seal supports two fundamental operations:
-\noindent
-\begin{enumerate}
+
+\begin{enumerate}[topsep=0pt]
     \item $\mathsf{close}(u,m) \rightarrow w$: a close of a seal $u$ over a message $m$, producing a witness $w$.
     This fulfills the original commitment, specified in the seal definition.
     \item $\mathsf{verify}(u,w,m) \rightarrow \mathbb{B}$: 
@@ -1036,7 +1048,7 @@ having the rights to access it (\emph{capability-based access}).
 Each contract is defined by a partially ordered set of contract operations
 $\mathcal{O} \triangleq \{ o_i \}$.
 An element of this set is a tuple, $o_i \triangleq \langle c_i, S_i, u_i \rangle$, consisting of:
-\begin{itemize}
+\begin{itemize}[topsep=0pt]
 \item client-side information of contract state change, $c_i$;
 \item an unordered map of seal definitions performed by an operation, 
   $S_i: d_j \in \mathcal{Y}_i \rightarrow s_j$, where $s_j$ is a seal definition;
